@@ -1,0 +1,12 @@
+main: com.larko.LCore.Main
+name: LCore
+version: A1.0
+author: Larko
+commands:
+  sethome:
+  delhome:
+  home:
+  homes:
+  claim:
+  unclaim:
+  claims:
