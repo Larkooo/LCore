@@ -1,8 +1,6 @@
 package com.larko.LCore;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -15,7 +13,6 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -44,6 +41,11 @@ public class Claim implements CommandExecutor, Listener {
 
             if(Utils.getClaims(player.getUniqueId()).size() > 5) {
                 player.sendMessage("You cannot have more than 5 claims");
+                return false;
+            }
+
+            if(!(Utils.checkClaim(player.getUniqueId(), player.getLocation()))) {
+                player.sendMessage("This zone has already been claimed");
                 return false;
             }
 
