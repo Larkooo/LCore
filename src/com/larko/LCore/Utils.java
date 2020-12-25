@@ -2,6 +2,7 @@ package com.larko.LCore;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.json.simple.JSONArray;
@@ -205,7 +206,7 @@ public class Utils {
                     JSONArray cachedClaims = (JSONArray) cachedPlayer.get("claims");
                     JSONObject claimToAdd = new JSONObject();
                     claimToAdd.put("pos", location.getX() + " " + location.getY() + " " + location.getZ());
-                    claimToAdd.put("radius", radius);
+                    claimToAdd.put("radius", String.valueOf(radius));
                     // Add to JSON
                     claims.add(claimToAdd);
                     // Add to cache
@@ -295,7 +296,7 @@ public class Utils {
             Iterator<JSONObject> claimsIterator = claims.iterator();
             while(claimsIterator.hasNext()) {
                 JSONObject claim = claimsIterator.next();
-                boolean isInRadius = checkIfInRadius(location, (String)claim.get("pos"), (int)(long)claim.get("radius"));
+                boolean isInRadius = checkIfInRadius(location, (String)claim.get("pos"), Integer.parseInt((String)claim.get("radius")));
                 if(!(playerObj.get("UUID").toString().equals(uuid.toString())) && isInRadius && location.getWorld() == Bukkit.getWorld("world")) {
                     return false;
                 }
@@ -305,7 +306,7 @@ public class Utils {
         return true;
     }
 
-    static public Player checkPlayerClaim(UUID uuid, Location location) {
+    static public OfflinePlayer checkPlayerClaim(UUID uuid, Location location) {
         JSONParser jsonParser = new JSONParser();
         Iterator<JSONObject> iterator = Main.cachedPlayers.iterator();
         while (iterator.hasNext()){
@@ -314,9 +315,11 @@ public class Utils {
             Iterator<JSONObject> claimsIterator = claims.iterator();
             while(claimsIterator.hasNext()) {
                 JSONObject claim = claimsIterator.next();
-                boolean isInRadius = checkIfInRadius(location, (String)claim.get("pos"), (int)(long)claim.get("radius"));
-                if(!(playerObj.get("UUID").toString().equals(uuid.toString())) && isInRadius && location.getWorld() == Bukkit.getWorld("world")) {
-                    return Bukkit.getPlayer((UUID)playerObj.get("UUID"));
+                boolean isInRadius = checkIfInRadius(location, (String)claim.get("pos"), Integer.parseInt((String)claim.get("radius")));
+                //!(playerObj.get("UUID").toString().equals(uuid.toString())) &&
+                if(isInRadius && location.getWorld() == Bukkit.getWorld("world")) {
+                    UUID claimPlayerUUID = UUID.fromString(playerObj.get("UUID").toString());
+                    return Bukkit.getOfflinePlayer(claimPlayerUUID);
                 }
             }
         }

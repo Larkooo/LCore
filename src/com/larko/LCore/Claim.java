@@ -2,6 +2,7 @@ package com.larko.LCore;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -91,12 +92,14 @@ public class Claim implements CommandExecutor, Listener {
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        Player claimOwner = Utils.checkPlayerClaim(player.getUniqueId(), player.getLocation());
-        if(claimOwner != null && inClaimPlayers.containsKey(player.getUniqueId())) {
-            player.sendTitle(null, ChatColor.BLUE + "Entered " + claimOwner.getDisplayName() + "'s claim", 1, 50, 3);
+        OfflinePlayer claimOwner = Utils.checkPlayerClaim(player.getUniqueId(), player.getLocation());
+        if(claimOwner != null && !(inClaimPlayers.containsKey(player.getUniqueId()))) {
+            player.sendTitle("", ChatColor.BLUE + "Entered " + claimOwner.getName() + "'s claim", 1, 50, 3);
             inClaimPlayers.put(player.getUniqueId(), claimOwner.getUniqueId());
+            System.out.println("lol");
         } else if(claimOwner == null && inClaimPlayers.containsKey(player.getUniqueId())) {
             inClaimPlayers.remove(player.getUniqueId());
+            player.sendTitle("", ChatColor.GREEN + "Wilderness", 1, 50, 3);
         }
     }
 }
