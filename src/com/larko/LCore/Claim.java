@@ -1,6 +1,7 @@
 package com.larko.LCore;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -88,7 +89,12 @@ public class Claim implements CommandExecutor, Listener {
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         if(player.getInventory().getItemInMainHand().getType().isEdible() && (event.getAction() == Action.RIGHT_CLICK_AIR)) return;
-        if(!(Utils.checkClaim(player.getUniqueId(), player.getLocation())))
+        if(event.getAction() == Action.RIGHT_CLICK_BLOCK || event.getAction() == Action.LEFT_CLICK_BLOCK) {
+            Location blockLocation = event.getClickedBlock().getLocation();
+            if(!(Utils.checkClaim(player.getUniqueId(), blockLocation))) {
+                event.setCancelled(true);
+            }
+        } else if(!(Utils.checkClaim(player.getUniqueId(), player.getLocation())))
             event.setCancelled(true);
     }
 
