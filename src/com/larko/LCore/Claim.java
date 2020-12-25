@@ -17,10 +17,11 @@ import org.json.simple.JSONObject;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 
 public class Claim implements CommandExecutor, Listener {
 
-    static HashMap inClaimPlayers = new HashMap();
+    static LinkedList inClaimPlayers = new LinkedList();
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
@@ -92,12 +93,12 @@ public class Claim implements CommandExecutor, Listener {
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        OfflinePlayer claimOwner = Utils.checkPlayerClaim(player.getUniqueId(), player.getLocation());
-        if(claimOwner != null && !(inClaimPlayers.containsKey(player.getUniqueId()))) {
-            player.sendTitle("", ChatColor.BLUE + "Entered " + claimOwner.getName() + "'s claim", 1, 50, 3);
-            inClaimPlayers.put(player.getUniqueId(), claimOwner.getUniqueId());
+        String claimOwnerName = Utils.checkPlayerClaim(player.getUniqueId(), player.getLocation());
+        if(claimOwnerName != null && !(inClaimPlayers.contains(player.getUniqueId()))) {
+            player.sendTitle("", ChatColor.BLUE + "Entered " + claimOwnerName + "'s claim", 1, 50, 3);
+            inClaimPlayers.add(player.getUniqueId());
             System.out.println("lol");
-        } else if(claimOwner == null && inClaimPlayers.containsKey(player.getUniqueId())) {
+        } else if(claimOwnerName == null && inClaimPlayers.contains(player.getUniqueId())) {
             inClaimPlayers.remove(player.getUniqueId());
             player.sendTitle("", ChatColor.GREEN + "Wilderness", 1, 50, 3);
         }

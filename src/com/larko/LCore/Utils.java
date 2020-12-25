@@ -306,7 +306,7 @@ public class Utils {
         return true;
     }
 
-    static public OfflinePlayer checkPlayerClaim(UUID uuid, Location location) {
+    static public String checkPlayerClaim(UUID uuid, Location location) {
         JSONParser jsonParser = new JSONParser();
         Iterator<JSONObject> iterator = Main.cachedPlayers.iterator();
         while (iterator.hasNext()){
@@ -319,7 +319,7 @@ public class Utils {
                 //!(playerObj.get("UUID").toString().equals(uuid.toString())) &&
                 if(isInRadius && location.getWorld() == Bukkit.getWorld("world")) {
                     UUID claimPlayerUUID = UUID.fromString(playerObj.get("UUID").toString());
-                    return Bukkit.getOfflinePlayer(claimPlayerUUID);
+                    return Bukkit.getOfflinePlayer(claimPlayerUUID).getName();
                 }
             }
         }
