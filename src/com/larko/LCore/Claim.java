@@ -2,13 +2,16 @@ package com.larko.LCore;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.json.simple.JSONArray;
@@ -16,6 +19,8 @@ import org.json.simple.JSONObject;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
 
 public class Claim implements CommandExecutor, Listener {
 
@@ -101,14 +106,33 @@ public class Claim implements CommandExecutor, Listener {
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        String claimOwnerName = Utils.checkPlayerClaim(player.getUniqueId(), player.getLocation());
-        if(claimOwnerName != null && !(inClaimPlayers.contains(player.getUniqueId()))) {
-            player.sendTitle("", ChatColor.BLUE + "Entered " + claimOwnerName + "'s claim", 1, 50, 3);
+        OfflinePlayer claimOwner = Utils.checkPlayerClaim(player.getUniqueId(), player.getLocation());
+        if(claimOwner != null && !(inClaimPlayers.contains(player.getUniqueId()))) {
+            player.sendTitle("", ChatColor.BLUE + "Entered " + claimOwner.getName() + "'s claim", 1, 50, 3);
             inClaimPlayers.add(player.getUniqueId());
             System.out.println("lol");
-        } else if(claimOwnerName == null && inClaimPlayers.contains(player.getUniqueId())) {
+        } else if(claimOwner == null && inClaimPlayers.contains(player.getUniqueId())) {
             inClaimPlayers.remove(player.getUniqueId());
             player.sendTitle("", ChatColor.GREEN + "Wilderness", 1, 50, 3);
+        }
+    }
+
+    @EventHandler
+    public void onEntityExplode(EntityExplodeEvent event) {
+        Entity entity = event.getEntity();
+        // The entity id here is basically useless but I'm lazy to do another function so
+        if(!(Utils.checkClaim(entity.getUniqueId(), entity.getLocation()))) {
+            // Also useless lol
+            OfflinePlayer claimOwner = Utils.checkPlayerClaim(entity.getUniqueId(), entity.getLocation());
+            List<Entity> nearbyEntities = entity.getNearbyEntities(5, 5, 5);
+            boolean foundClaimOwnerInRadius = false;
+            for(Entity nearbyEntity : nearbyEntities) {
+                if(nearbyEntity == claimOwner.getPlayer()) {
+                    foundClaimOwnerInRadius = true;
+                    break;
+                }
+            }
+            event.setCancelled(!foundClaimOwnerInRadius);
         }
     }
 }
