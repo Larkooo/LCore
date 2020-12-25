@@ -1,5 +1,6 @@
 package com.larko.LCore;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -9,12 +10,16 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.util.HashMap;
 import java.util.Iterator;
 
 public class Claim implements CommandExecutor, Listener {
+
+    static HashMap inClaimPlayers = new HashMap();
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
@@ -81,5 +86,17 @@ public class Claim implements CommandExecutor, Listener {
         if(player.getInventory().getItemInMainHand().getType().isEdible() && (event.getAction() == Action.RIGHT_CLICK_AIR)) return;
         if(!(Utils.checkClaim(player.getUniqueId(), player.getLocation())))
             event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        Player claimOwner = Utils.checkPlayerClaim(player.getUniqueId(), player.getLocation());
+        if(claimOwner != null && inClaimPlayers.containsKey(player.getUniqueId())) {
+            player.sendTitle(null, ChatColor.BLUE + "Entered " + claimOwner.getDisplayName() + "'s claim", 1, 50, 3);
+            inClaimPlayers.put(player.getUniqueId(), claimOwner.getUniqueId());
+        } else if(claimOwner == null && inClaimPlayers.containsKey(player.getUniqueId())) {
+            inClaimPlayers.remove(player.getUniqueId());
+        }
     }
 }

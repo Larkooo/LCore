@@ -23,24 +23,15 @@ public class Utils {
     static public boolean isPlayerRegistered(UUID uuid) {
         boolean registered = false;
 
-        JSONParser jsonParser = new JSONParser();
-        try {
-            Object obj = jsonParser.parse(new FileReader(new File(dataFolder, "players.json")));
 
-            JSONArray players = (JSONArray) obj;
-
-            Iterator<JSONObject> iterator = players.iterator();
-            while (iterator.hasNext()){
-                JSONObject playerObj = iterator.next();
-                if(uuid.toString().equals((String) playerObj.get("UUID"))) {
-                    registered = true;
-                    break;
-                }
+        Iterator<JSONObject> iterator = Main.cachedPlayers.iterator();
+        while (iterator.hasNext()){
+            JSONObject playerObj = iterator.next();
+            if(uuid.toString().equals((String) playerObj.get("UUID"))) {
+                registered = true;
+                break;
             }
-        } catch(Exception e) {
-            e.printStackTrace();
         }
-
 
         return registered;
     }
@@ -59,7 +50,11 @@ public class Utils {
             player.put("homes", new JSONObject());
             player.put("claims", new JSONArray());
 
+            // Add to json
             players.add(player);
+            // Add to cache
+            Main.cachedPlayers.add(player);
+
 
             FileWriter playersFile = new FileWriter(new File(dataFolder, "players.json"));
             playersFile.write(players.toJSONString());
@@ -72,21 +67,14 @@ public class Utils {
     }
 
     static public boolean loginPlayer(UUID uuid, String password) {
-        JSONParser jsonParser = new JSONParser();
         String checkPassword = "";
-        try {
-            Object obj = jsonParser.parse(new FileReader(new File(dataFolder, "players.json")));
-            JSONArray players = (JSONArray) obj;
-            Iterator<JSONObject> iterator = players.iterator();
-            while (iterator.hasNext()){
-                JSONObject playerObj = iterator.next();
-                if(uuid.toString().equals((String) playerObj.get("UUID"))) {
-                    checkPassword = (String) playerObj.get("password");
-                    break;
-                }
+        Iterator<JSONObject> iterator = Main.cachedPlayers.iterator();
+        while (iterator.hasNext()){
+            JSONObject playerObj = iterator.next();
+            if(uuid.toString().equals((String) playerObj.get("UUID"))) {
+                checkPassword = (String) playerObj.get("password");
+                break;
             }
-        } catch(Exception e) {
-            e.printStackTrace();
         }
         return BCrypt.checkpw(password, checkPassword);
     }
@@ -97,13 +85,23 @@ public class Utils {
         try {
             Object obj = jsonParser.parse(new FileReader(new File(dataFolder, "players.json")));
             JSONArray players = (JSONArray) obj;
+            // JSON Iterator
             Iterator<JSONObject> iterator = players.iterator();
-            while (iterator.hasNext()){
+            // Cached players Iterator
+            Iterator<JSONObject> cachedIterator = Main.cachedPlayers.iterator();
+
+            while (iterator.hasNext() && cachedIterator.hasNext()){
                 JSONObject playerObj = iterator.next();
+                JSONObject cachedPlayer = cachedIterator.next();
                 if(player.getUniqueId().toString().equals((String) playerObj.get("UUID"))) {
                     Location playerLoc = player.getLocation();
                     JSONObject homes = (JSONObject) playerObj.get("homes");
+                    JSONObject cachedHomes = (JSONObject) cachedPlayer.get("homes");
+
+                    // Put to json
                     homes.put(name, playerLoc.getX() + " " + playerLoc.getY() + " " + playerLoc.getZ());
+                    // Put to cache
+                    cachedHomes.put(name, playerLoc.getX() + " " + playerLoc.getY() + " " + playerLoc.getZ());
 
                     FileWriter playersFile = new FileWriter(new File(dataFolder, "players.json"));
                     playersFile.write(players.toJSONString());
@@ -126,12 +124,21 @@ public class Utils {
         try {
             Object obj = jsonParser.parse(new FileReader(new File(dataFolder, "players.json")));
             JSONArray players = (JSONArray) obj;
+            // JSON Iterator
             Iterator<JSONObject> iterator = players.iterator();
-            while (iterator.hasNext()){
+            // Cached players Iterator
+            Iterator<JSONObject> cachedIterator = Main.cachedPlayers.iterator();
+            while (iterator.hasNext() && cachedIterator.hasNext()){
                 JSONObject playerObj = iterator.next();
+                JSONObject cachedPlayer = cachedIterator.next();
                 if(uuid.toString().equals((String) playerObj.get("UUID"))) {
                     JSONObject homes = (JSONObject) playerObj.get("homes");
+                    JSONObject cachedHomes = (JSONObject) cachedPlayer.get("homes");
+                    // Remove from json
                     homes.remove(name);
+                    // Remove from cache
+                    cachedHomes.remove(name);
+
 
                     FileWriter playersFile = new FileWriter(new File(dataFolder, "players.json"));
                     playersFile.write(players.toJSONString());
@@ -151,42 +158,31 @@ public class Utils {
     static public Location getHome(UUID uuid, String name) {
         JSONParser jsonParser = new JSONParser();
         Location home = null;
-        try {
-            Object obj = jsonParser.parse(new FileReader(new File(dataFolder, "players.json")));
-            JSONArray players = (JSONArray) obj;
-            Iterator<JSONObject> iterator = players.iterator();
-            while (iterator.hasNext()){
-                JSONObject playerObj = iterator.next();
-                if(uuid.toString().equals((String) playerObj.get("UUID"))) {
-                    JSONObject homes = (JSONObject) playerObj.get("homes");
-                    String coordString = (String) homes.get(name);
-                    String[] splittedCoords = coordString.split("\\s+");
-                    home = new Location(Bukkit.getWorld("world"), Double.parseDouble(splittedCoords[0]), Double.parseDouble(splittedCoords[1]), Double.parseDouble(splittedCoords[2]));
-                    break;
-                }
+        Iterator<JSONObject> iterator = Main.cachedPlayers.iterator();
+        while (iterator.hasNext()){
+            JSONObject playerObj = iterator.next();
+            if(uuid.toString().equals((String) playerObj.get("UUID"))) {
+                JSONObject homes = (JSONObject) playerObj.get("homes");
+                String coordString = (String) homes.get(name);
+                String[] splittedCoords = coordString.split("\\s+");
+                home = new Location(Bukkit.getWorld("world"), Double.parseDouble(splittedCoords[0]), Double.parseDouble(splittedCoords[1]), Double.parseDouble(splittedCoords[2]));
+                break;
             }
-        } catch(Exception e) {
-            e.printStackTrace();
         }
+
         return home;
     }
 
     static public Set<String> getHomes(UUID uuid) {
         JSONParser jsonParser = new JSONParser();
         Set<String> homes = null;
-        try {
-            Object obj = jsonParser.parse(new FileReader(new File(dataFolder, "players.json")));
-            JSONArray players = (JSONArray) obj;
-            Iterator<JSONObject> iterator = players.iterator();
-            while (iterator.hasNext()){
-                JSONObject playerObj = iterator.next();
-                if(uuid.toString().equals((String)playerObj.get("UUID"))) {
-                    JSONObject homesObj = (JSONObject) playerObj.get("homes");
-                    homes = homesObj.keySet();
-                }
+        Iterator<JSONObject> iterator = Main.cachedPlayers.iterator();
+        while (iterator.hasNext()){
+            JSONObject playerObj = iterator.next();
+            if(uuid.toString().equals((String)playerObj.get("UUID"))) {
+                JSONObject homesObj = (JSONObject) playerObj.get("homes");
+                homes = homesObj.keySet();
             }
-        } catch(Exception e) {
-            e.printStackTrace();
         }
         return homes;
     }
@@ -197,15 +193,23 @@ public class Utils {
         try {
             Object obj = jsonParser.parse(new FileReader(new File(dataFolder, "players.json")));
             JSONArray players = (JSONArray) obj;
+            // JSON Iterator
             Iterator<JSONObject> iterator = players.iterator();
-            while (iterator.hasNext()){
+            // Cached players Iterator
+            Iterator<JSONObject> cachedIterator = Main.cachedPlayers.iterator();
+            while (iterator.hasNext() && cachedIterator.hasNext()){
                 JSONObject playerObj = iterator.next();
+                JSONObject cachedPlayer = cachedIterator.next();
                 if(uuid.toString().equals((String) playerObj.get("UUID"))) {
                     JSONArray claims = (JSONArray) playerObj.get("claims");
+                    JSONArray cachedClaims = (JSONArray) cachedPlayer.get("claims");
                     JSONObject claimToAdd = new JSONObject();
                     claimToAdd.put("pos", location.getX() + " " + location.getY() + " " + location.getZ());
                     claimToAdd.put("radius", radius);
+                    // Add to JSON
                     claims.add(claimToAdd);
+                    // Add to cache
+                    cachedClaims.add(claimToAdd);
 
                     FileWriter playersFile = new FileWriter(new File(dataFolder, "players.json"));
                     playersFile.write(players.toJSONString());
@@ -227,18 +231,30 @@ public class Utils {
         try {
             Object obj = jsonParser.parse(new FileReader(new File(dataFolder, "players.json")));
             JSONArray players = (JSONArray) obj;
+            // JSON Iterator
             Iterator<JSONObject> iterator = players.iterator();
-            while (iterator.hasNext()) {
+            // Cached players Iterator
+            Iterator<JSONObject> cachedIterator = Main.cachedPlayers.iterator();
+            while (iterator.hasNext() && cachedIterator.hasNext()) {
                 JSONObject playerObj = iterator.next();
+                JSONObject cachedPlayer = cachedIterator.next();
                 if (uuid.toString().equals((String) playerObj.get("UUID"))) {
                     JSONArray claims = (JSONArray) playerObj.get("claims");
+                    JSONArray cachedClaims = (JSONArray) cachedPlayer.get("claims");
+                    // JSON claims iterator
                     Iterator<JSONObject> claimsIterator = claims.iterator();
+                    // Cached players claims iterator
+                    Iterator<JSONObject> cachedClaimsIterator = cachedClaims.iterator();
                     int count = 0;
                     while(claimsIterator.hasNext()) {
                         JSONObject claim = claimsIterator.next();
+                        JSONObject cachedClaim = cachedClaimsIterator.next();
                         boolean isInRadius = checkIfInRadius(playerLoc, (String)claim.get("pos"), (int)(long)claim.get("radius"));
                         if(isInRadius) {
+                            // JSON remove
                             claims.remove(count);
+                            // Cache remove
+                            cachedClaim.remove(count);
                             FileWriter playersFile = new FileWriter(new File(dataFolder, "players.json"));
                             playersFile.write(players.toJSONString());
                             playersFile.flush();
@@ -259,49 +275,53 @@ public class Utils {
 
     static public JSONArray getClaims(UUID uuid) {
         JSONParser jsonParser = new JSONParser();
-        try {
-            Object obj = jsonParser.parse(new FileReader(new File(dataFolder, "players.json")));
-            JSONArray players = (JSONArray) obj;
-            Iterator<JSONObject> iterator = players.iterator();
-            while (iterator.hasNext()) {
-                JSONObject playerObj = iterator.next();
-                if (uuid.toString().equals((String) playerObj.get("UUID"))) {
-                    JSONArray claims = (JSONArray) playerObj.get("claims");
-                    return claims;
-                }
+        Iterator<JSONObject> iterator = Main.cachedPlayers.iterator();
+        while (iterator.hasNext()) {
+            JSONObject playerObj = iterator.next();
+            if (uuid.toString().equals((String) playerObj.get("UUID"))) {
+                JSONArray claims = (JSONArray) playerObj.get("claims");
+                return claims;
             }
-        } catch(Exception e) {
-            e.printStackTrace();
         }
         return null;
     }
 
     static public boolean checkClaim(UUID uuid, Location location) {
         JSONParser jsonParser = new JSONParser();
-        try {
-            Object obj = jsonParser.parse(new FileReader(new File(dataFolder, "players.json")));
-            JSONArray players = (JSONArray) obj;
-            Iterator<JSONObject> iterator = players.iterator();
-            while (iterator.hasNext()){
-                JSONObject playerObj = iterator.next();
-                JSONArray claims = (JSONArray) playerObj.get("claims");
-                Iterator<JSONObject> claimsIterator = claims.iterator();
-
-                while(claimsIterator.hasNext()) {
-                    JSONObject claim = claimsIterator.next();
-                    //System.out.println("lol");
-                    boolean isInRadius = checkIfInRadius(location, (String)claim.get("pos"), (int)(long)claim.get("radius"));
-                    //System.out.println(isInRadius);
-                    if(!(playerObj.get("UUID").toString().equals(uuid.toString())) && isInRadius && location.getWorld() == Bukkit.getWorld("world")) {
-                        return false;
-                    }
+        Iterator<JSONObject> iterator = Main.cachedPlayers.iterator();
+        while (iterator.hasNext()){
+            JSONObject playerObj = iterator.next();
+            JSONArray claims = (JSONArray) playerObj.get("claims");
+            Iterator<JSONObject> claimsIterator = claims.iterator();
+            while(claimsIterator.hasNext()) {
+                JSONObject claim = claimsIterator.next();
+                boolean isInRadius = checkIfInRadius(location, (String)claim.get("pos"), (int)(long)claim.get("radius"));
+                if(!(playerObj.get("UUID").toString().equals(uuid.toString())) && isInRadius && location.getWorld() == Bukkit.getWorld("world")) {
+                    return false;
                 }
             }
-        } catch(Exception e) {
-            e.printStackTrace();
         }
         //System.out.println(check);
         return true;
+    }
+
+    static public Player checkPlayerClaim(UUID uuid, Location location) {
+        JSONParser jsonParser = new JSONParser();
+        Iterator<JSONObject> iterator = Main.cachedPlayers.iterator();
+        while (iterator.hasNext()){
+            JSONObject playerObj = iterator.next();
+            JSONArray claims = (JSONArray) playerObj.get("claims");
+            Iterator<JSONObject> claimsIterator = claims.iterator();
+            while(claimsIterator.hasNext()) {
+                JSONObject claim = claimsIterator.next();
+                boolean isInRadius = checkIfInRadius(location, (String)claim.get("pos"), (int)(long)claim.get("radius"));
+                if(!(playerObj.get("UUID").toString().equals(uuid.toString())) && isInRadius && location.getWorld() == Bukkit.getWorld("world")) {
+                    return Bukkit.getPlayer((UUID)playerObj.get("UUID"));
+                }
+            }
+        }
+        //System.out.println(check);
+        return null;
     }
 
     static public boolean tryParseInt(String value) {
