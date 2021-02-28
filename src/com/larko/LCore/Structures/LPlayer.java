@@ -8,10 +8,11 @@ import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.UUID;
 
 public class LPlayer {
-    private static ArrayList<LPlayer> players;
+    private static ArrayList<LPlayer> players = new ArrayList<>();
     private UUID uuid;
     private ArrayList<Home> homes;
     private ArrayList<Claim> claims;
@@ -65,7 +66,7 @@ public class LPlayer {
     public boolean removeHome(String name) {
         if(HomeUtils.delHomeDB(this.uuid, name))
             for(Home home : this.homes) {
-                if(home.getName() == name) {
+                if(home.getName().equals(name)) {
                     return this.homes.remove(home);
                 }
             }
@@ -74,7 +75,7 @@ public class LPlayer {
 
     public Home getHome(String name) {
         for(Home home : this.homes) {
-            if(home.getName() == name)
+            if(home.getName().equals(name))
                 return home;
         }
         return null;
@@ -106,14 +107,14 @@ public class LPlayer {
         }
 
         // homes
-        Iterator<JSONObject> homesIterator = ((JSONArray) jsonObject.get("homes")).iterator();
+        JSONObject homesJson = ((JSONObject) jsonObject.get("homes"));
+        Iterator<String> homesKeys = homesJson.keySet().iterator();
         ArrayList<Home> homes = new ArrayList<>();
-        while(homesIterator.hasNext()) {
-            JSONObject homeJson = homesIterator.next();
-            homes.add(
-                    Home.fromJSON(homeJson)
-            );
+        while(homesKeys.hasNext()) {
+            String key = homesKeys.next();
+            homes.add(new Home(key, Position.fromStrings(homesJson.get(key).toString(), "overworld")));
         }
+
         LPlayer player = new LPlayer(UUID.fromString(jsonObject.get("uuid").toString()), homes, claims);
         return player;
     }
@@ -125,7 +126,7 @@ public class LPlayer {
     public static LPlayer findByUUID(UUID uuid) {
         LPlayer found = null;
         for(LPlayer player : players) {
-            if(player.uuid == uuid) {
+            if(player.uuid.equals(uuid)) {
                 found = player;
             }
         }

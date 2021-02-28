@@ -86,6 +86,7 @@ public class AuthModule implements Listener {
                 awaitingLoginPlayers.remove(player.getUniqueId());
                 // loggedInPlayers.add(player.getUniqueId());
                 player.sendMessage("Successfully logged in");
+                System.out.println(LPlayer.getPlayers().size());
                 Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("LCore"), () -> {
                     player.removePotionEffect(PotionEffectType.BLINDNESS);
                     player.setCanPickupItems(true);

@@ -23,7 +23,7 @@ public class Home {
 
     public static Home fromJSON(JSONObject jsonObject) {
         return new Home(
-                jsonObject.toString(),
+                jsonObject.get("name").toString(),
                 Position.fromStrings(
                         jsonObject.get("pos").toString(),
                         jsonObject.get("dimension").toString()

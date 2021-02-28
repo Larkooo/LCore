@@ -206,7 +206,7 @@ public class ClaimUtils {
     public static boolean checkClaim(UUID uuid, Location location) {
         for(LPlayer player : LPlayer.getPlayers()) {
             for (Claim claim : player.getClaims()) {
-                if(claim.inRadius(location) && player.getUuid() != uuid) {
+                if(claim.inRadius(location) && !(player.getUuid().equals(uuid))) {
                     return false;
                 }
             }
