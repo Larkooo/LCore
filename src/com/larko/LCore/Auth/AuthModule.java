@@ -1,29 +1,25 @@
-package com.larko.LCore;
+package com.larko.LCore.Auth;
 
+import com.larko.LCore.Structures.LPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.*;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
-import static com.larko.LCore.Utils.*;
+import static com.larko.LCore.Utils.AuthUtils.*;
 
-public class Auth implements Listener {
-    static ArrayList loggedInPlayers = new ArrayList<UUID>();
+public class AuthModule implements Listener {
+    // static ArrayList loggedInPlayers = new ArrayList<UUID>();
     static HashMap awaitingLoginPlayers = new HashMap<UUID, String>();
 
-    Auth() {
+    public AuthModule() {
         for(Player player : Bukkit.getServer().getOnlinePlayers()) {
             boolean hasAlreadyAccount = isPlayerRegistered(player.getUniqueId());
 
@@ -68,7 +64,7 @@ public class Auth implements Listener {
     public void onPlayerMove(PlayerMoveEvent event) {
         Location before = event.getFrom();
         Player player = event.getPlayer();
-        if(!loggedInPlayers.contains(player.getUniqueId())) {
+        if(LPlayer.findByUUID(player.getUniqueId()) == null) {
             player.teleport(before);
         }
     }
@@ -86,9 +82,9 @@ public class Auth implements Listener {
             player.sendMessage("Successfully registered. Please type your password again to proceed.");
         } else {
             event.setCancelled(true);
-            if(loginPlayer(player.getUniqueId(), message)) {
+            if(loginPlayer(player.getUniqueId(), message) != null) {
                 awaitingLoginPlayers.remove(player.getUniqueId());
-                loggedInPlayers.add(player.getUniqueId());
+                // loggedInPlayers.add(player.getUniqueId());
                 player.sendMessage("Successfully logged in");
                 Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("LCore"), () -> {
                     player.removePotionEffect(PotionEffectType.BLINDNESS);
@@ -105,14 +101,15 @@ public class Auth implements Listener {
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event){
         Player player = event.getPlayer();
-        if(!loggedInPlayers.contains(player.getUniqueId())) {
+        if(LPlayer.findByUUID(player.getUniqueId()) == null) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onPlayerLeave(PlayerQuitEvent event) {
-        if(loggedInPlayers.contains(event.getPlayer().getUniqueId()))
-            loggedInPlayers.remove(event.getPlayer().getUniqueId());
+        LPlayer player = LPlayer.findByUUID(event.getPlayer().getUniqueId());
+        if(player != null)
+            LPlayer.getPlayers().remove(player);
     }
 }

@@ -10,3 +10,5 @@ commands:
   claim:
   unclaim:
   claims:
+  addtoclaim:
+  removefromclaim:

@@ -1,8 +1,10 @@
-package com.larko.LCore;
+package com.larko.LCore.World;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.OfflinePlayer;
+import com.larko.LCore.Structures.Claim;
+import com.larko.LCore.Structures.LPlayer;
+import com.larko.LCore.Structures.Position;
+import com.larko.LCore.Utils.Utilities;
+import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -14,28 +16,27 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
-public class Claim implements CommandExecutor, Listener {
+import com.larko.LCore.Utils.ClaimUtils;
+
+public class ClaimModule implements CommandExecutor, Listener {
 
     static LinkedList inClaimPlayers = new LinkedList();
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
+        System.out.println(label);
         if(label.equalsIgnoreCase("claim")) {
             if(!(commandSender instanceof Player)) return false;
             Player player = (Player) commandSender;
+            LPlayer lPlayer = LPlayer.findByUUID(player.getUniqueId());
             if(args.length < 1) {
                 player.sendMessage("Please provide a radius");
                 return false;
             }
-            if(!(Utils.tryParseInt(args[0]))) {
+            if(!(Utilities.tryParseInt(args[0]))) {
                 player.sendMessage("Could not parse radius, are you providing an integer?");
                 return false;
             }
@@ -45,17 +46,17 @@ public class Claim implements CommandExecutor, Listener {
                 return false;
             }
 
-            if(Utils.getClaims(player.getUniqueId()).size() > 5) {
+            if(lPlayer.getClaims().size() > 5) {
                 player.sendMessage("You cannot have more than 5 claims");
                 return false;
             }
 
-            if(!(Utils.checkClaim(player.getUniqueId(), player.getLocation()))) {
+            if(!(ClaimUtils.checkClaim(player.getUniqueId(), player.getLocation()))) {
                 player.sendMessage("This zone has already been claimed");
                 return false;
             }
 
-            if(Utils.addClaim(player.getUniqueId(), player.getLocation(), radius)) {
+            if(lPlayer.addClaim(player.getLocation(), radius)) {
                 player.sendMessage("Claimed this zone");
                 return true;
             } else {
@@ -65,7 +66,8 @@ public class Claim implements CommandExecutor, Listener {
         } else if(label.equalsIgnoreCase("unclaim")) {
             if(!(commandSender instanceof Player)) return false;
             Player player = (Player) commandSender;
-            boolean unclaimed = Utils.unClaim(player.getUniqueId(), player.getLocation());
+            LPlayer lPlayer = LPlayer.findByUUID(player.getUniqueId());
+            boolean unclaimed = lPlayer.removeClaim(player.getLocation());
             if(unclaimed) {
                 player.sendMessage("Unclaimed zone");
                 return true;
@@ -73,16 +75,57 @@ public class Claim implements CommandExecutor, Listener {
                 player.sendMessage("Can't unclaim something you haven't claimed yet");
                 return false;
             }
+        } else if(label.equalsIgnoreCase("addtoclaim")) {
+            if(!(commandSender instanceof Player)) return false;
+            Player player = (Player) commandSender;
+            if(args.length < 1) {
+                player.sendMessage("Player name missing");
+                return false;
+            }
+            Player scopedPlayer = Bukkit.getPlayer(args[0]);
+            if(scopedPlayer == null) {
+                player.sendMessage("Invalid player");
+                return false;
+            }
+            boolean addedToClaim = ClaimUtils.addPlayerToClaim(player.getUniqueId(), player.getLocation(), scopedPlayer.getUniqueId());
+            if(!addedToClaim) {
+                player.sendMessage("Could not add this player to this claim");
+                return false;
+            } else {
+                player.sendMessage("Added " + args[0] + " to your claim");
+                scopedPlayer.sendMessage(player.getName() + " added you to his claim");
+                return true;
+            }
+        } else if(label.equalsIgnoreCase("removefromclaim")) {
+            if(!(commandSender instanceof Player)) return false;
+            Player player = (Player) commandSender;
+            if(args.length < 1) {
+                player.sendMessage("Player name missing");
+                return false;
+            }
+            Player scopedPlayer = Bukkit.getPlayer(args[0]);
+            if(scopedPlayer == null) {
+                player.sendMessage("Invalid player");
+                return false;
+            }
+            boolean removedFromClaim = ClaimUtils.removePlayerFromClaim(player.getUniqueId(), player.getLocation(), scopedPlayer.getUniqueId());
+            if(!removedFromClaim) {
+                player.sendMessage("Could not remove this player from this claim");
+                return false;
+            } else {
+                player.sendMessage("Removed " + args[0] + " from your claim");
+                scopedPlayer.sendMessage(player.getName() + " removed you from his claim");
+                return true;
+            }
         } else if(label.equalsIgnoreCase("claims")) {
             if(!(commandSender instanceof Player)) return false;
             Player player = (Player) commandSender;
-            JSONArray claims = Utils.getClaims(player.getUniqueId());
-            if(claims != null) {
+            ArrayList<Claim> claims = LPlayer.findByUUID(player.getUniqueId()).getClaims();
+            if(claims.size() > 0) {
                 String claimsString = "";
-                Iterator<JSONObject> claimsIterator = claims.iterator();
-                while(claimsIterator.hasNext()) {
-                    JSONObject claim = claimsIterator.next();
-                    claimsString += "Coords : " + (String) claim.get("pos") + " Radius : " + claim.get("radius") + "\n";
+                for(Claim claim : claims) {
+                    Position pos = claim.getPosition();
+                    claimsString += "Coords : " + pos.getX() + " " + pos.getY() + " " + pos.getZ() + " Radius : " + claim.getRadius() + "\n";
                 }
                 player.sendMessage("Claims : " + claims.size() + "\n" + claimsString);
             }
@@ -94,19 +137,20 @@ public class Claim implements CommandExecutor, Listener {
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         if(player.getInventory().getItemInMainHand().getType().isEdible() && (event.getAction() == Action.RIGHT_CLICK_AIR)) return;
+        if(player.getInventory().getItemInMainHand().getType() == Material.SHIELD && (event.getAction() == Action.RIGHT_CLICK_AIR)) return;
         if(event.getAction() == Action.RIGHT_CLICK_BLOCK || event.getAction() == Action.LEFT_CLICK_BLOCK) {
             Location blockLocation = event.getClickedBlock().getLocation();
-            if(!(Utils.checkClaim(player.getUniqueId(), blockLocation))) {
+            if(!(ClaimUtils.checkClaim(player.getUniqueId(), blockLocation))) {
                 event.setCancelled(true);
             }
-        } else if(!(Utils.checkClaim(player.getUniqueId(), player.getLocation())))
+        } else if(!(ClaimUtils.checkClaim(player.getUniqueId(), player.getLocation())))
             event.setCancelled(true);
     }
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        OfflinePlayer claimOwner = Utils.checkPlayerClaim(player.getUniqueId(), player.getLocation());
+        OfflinePlayer claimOwner = ClaimUtils.checkPlayerClaim(player.getUniqueId(), player.getLocation());
         if(claimOwner != null && !(inClaimPlayers.contains(player.getUniqueId()))) {
             player.sendTitle("", ChatColor.BLUE + "Entered " + claimOwner.getName() + "'s claim", 1, 50, 3);
             inClaimPlayers.add(player.getUniqueId());
@@ -121,9 +165,9 @@ public class Claim implements CommandExecutor, Listener {
     public void onEntityExplode(EntityExplodeEvent event) {
         Entity entity = event.getEntity();
         // The entity id here is basically useless but I'm lazy to do another function so
-        if(!(Utils.checkClaim(entity.getUniqueId(), entity.getLocation()))) {
+        if(!(ClaimUtils.checkClaim(entity.getUniqueId(), entity.getLocation()))) {
             // Also useless lol
-            OfflinePlayer claimOwner = Utils.checkPlayerClaim(entity.getUniqueId(), entity.getLocation());
+            OfflinePlayer claimOwner = ClaimUtils.checkPlayerClaim(entity.getUniqueId(), entity.getLocation());
             List<Entity> nearbyEntities = entity.getNearbyEntities(5, 5, 5);
             boolean foundClaimOwnerInRadius = false;
             for(Entity nearbyEntity : nearbyEntities) {
