@@ -83,10 +83,10 @@ public class ClaimUtils {
                         JSONObject cachedClaim = cachedClaimsIterator.next();
                         boolean isInRadius = Utilities.checkIfInRadius(playerLoc, (String)claim.get("pos"),Integer.parseInt((String)claim.get("radius")));
                         if(isInRadius) {
-                            // JSON remove
-                            claims.remove(claim);
                             // Cache remove
-                            cachedClaim.remove(claim);
+                            cachedClaimsIterator.remove();
+                            // JSON remove
+                            claimsIterator.remove();
                             FileWriter playersFile = new FileWriter(new File(Utilities.dataFolder, "players.json"));
                             playersFile.write(players.toJSONString());
                             playersFile.flush();
@@ -217,13 +217,12 @@ public class ClaimUtils {
 
     static public OfflinePlayer checkPlayerClaim(UUID uuid, Location location) {
         JSONParser jsonParser = new JSONParser();
-        Iterator<JSONObject> iterator = Main.cachedPlayersData.iterator();
-        while (iterator.hasNext()){
-            JSONObject playerObj = iterator.next();
+        JSONArray cachedPlayersData = (JSONArray) Main.cachedPlayersData;
+        for(int i = 0; i < cachedPlayersData.size(); i++){
+            JSONObject playerObj = (JSONObject) cachedPlayersData.get(i);
             JSONArray claims = (JSONArray) playerObj.get("claims");
-            Iterator<JSONObject> claimsIterator = claims.iterator();
-            while(claimsIterator.hasNext()) {
-                JSONObject claim = claimsIterator.next();
+            for(int n = 0; n < claims.size(); n++) {
+                JSONObject claim = (JSONObject) claims.get(n);
                 boolean isInRadius = Utilities.checkIfInRadius(location, (String)claim.get("pos"), Integer.parseInt((String)claim.get("radius")));
                 //!(playerObj.get("uuid").toString().equals(uuid.toString())) &&
                 if(isInRadius && location.getWorld() == Bukkit.getWorld("world")) {

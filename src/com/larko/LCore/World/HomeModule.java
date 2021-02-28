@@ -4,9 +4,9 @@ import com.larko.LCore.Structures.Home;
 import com.larko.LCore.Structures.LPlayer;
 import net.minecraft.server.v1_16_R3.DimensionManager;
 import net.minecraft.server.v1_16_R3.IRegistryCustom;
-import net.minecraft.server.v1_16_R3.World;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -29,8 +29,8 @@ public class HomeModule implements CommandExecutor {
             Player player = (Player) commandSender;
             LPlayer lPlayer = LPlayer.findByUUID(player.getUniqueId());
 
-            if(!(player.getWorld() == Bukkit.getWorld("world"))) {
-                player.sendMessage("You cannot set a home in the nether");
+            if(!(player.getWorld().getEnvironment().equals(World.Environment.NORMAL))) {
+                player.sendMessage("You can only set a home in the overworld");
                 return false;
             };
 

@@ -1,5 +1,6 @@
 package com.larko.LCore.Structures;
 
+import com.larko.LCore.Main;
 import com.larko.LCore.Utils.ClaimUtils;
 import com.larko.LCore.Utils.HomeUtils;
 import org.bukkit.Location;
@@ -42,19 +43,24 @@ public class LPlayer {
     }
 
     public boolean removeClaim(Location location) {
-        boolean claimRemoved = ClaimUtils.removeClaimDB(this.uuid, location);
-        if(claimRemoved) {
-            boolean removed = false;
-            for(Claim claim : this.claims) {
-                Position claimPos = claim.getPosition();
-                if(claim.inRadius(location)) {
-                    this.claims.remove(claim);
-                    removed = true;
+        try {
+            boolean claimRemoved = ClaimUtils.removeClaimDB(this.uuid, location);
+            if(claimRemoved) {
+                boolean removed = false;
+                for(Claim claim : this.claims) {
+                    Position claimPos = claim.getPosition();
+                    if(claim.inRadius(location)) {
+                        this.claims.remove(claim);
+                        removed = true;
+                    }
                 }
+                return removed;
             }
-            return removed;
+            return false;
+        } catch(Exception err) {
+            // ignore
+            return true;
         }
-        return false;
     }
 
     public boolean addHome(String name, Location location) {

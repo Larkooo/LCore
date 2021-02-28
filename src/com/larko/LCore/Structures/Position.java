@@ -24,10 +24,10 @@ public class Position {
         Double z = Double.parseDouble(splittedCoords[2]);
         org.bukkit.World.Environment world;
         switch(worldStr) {
-            case "nether":
+            case "NETHER":
                 world = org.bukkit.World.Environment.NETHER;
                 break;
-            case "end":
+            case "THE_END":
                 world = World.Environment.THE_END;
                 break;
             default:

@@ -28,7 +28,7 @@ public class ClaimModule implements CommandExecutor, Listener {
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
         System.out.println(label);
-        if(label.equalsIgnoreCase("claim")) {
+        if(label.equalsIgnoreCase("claim") || label.equalsIgnoreCase("setclaim")) {
             if(!(commandSender instanceof Player)) return false;
             Player player = (Player) commandSender;
             LPlayer lPlayer = LPlayer.findByUUID(player.getUniqueId());
@@ -128,6 +128,8 @@ public class ClaimModule implements CommandExecutor, Listener {
                     claimsString += "Coords : " + pos.getX() + " " + pos.getY() + " " + pos.getZ() + " Radius : " + claim.getRadius() + "\n";
                 }
                 player.sendMessage("Claims : " + claims.size() + "\n" + claimsString);
+            } else {
+                player.sendMessage("You don't have any claims");
             }
         }
         return false;
