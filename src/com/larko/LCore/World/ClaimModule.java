@@ -33,21 +33,21 @@ public class ClaimModule implements CommandExecutor, Listener {
             Player player = (Player) commandSender;
             LPlayer lPlayer = LPlayer.findByUUID(player.getUniqueId());
             if(args.length < 1) {
-                player.sendMessage("Please provide a radius");
+                player.sendMessage(ChatColor.RED + "Please provide a radius");
                 return false;
             }
             if(!(Utilities.tryParseInt(args[0]))) {
-                player.sendMessage("Could not parse radius, are you providing an integer?");
+                player.sendMessage(ChatColor.RED + "Could not parse radius, are you providing an integer?");
                 return false;
             }
             int radius = Integer.parseInt(args[0]);
             if(radius > 100) {
-                player.sendMessage("Can't claim more than 100 blocks");
+                player.sendMessage(ChatColor.RED + "Can't claim more than 100 blocks");
                 return false;
             }
 
             if(lPlayer.getClaims().size() > 5) {
-                player.sendMessage("You cannot have more than 5 claims");
+                player.sendMessage(ChatColor.RED + "You cannot have more than 5 claims");
                 return false;
             }
 
@@ -60,7 +60,7 @@ public class ClaimModule implements CommandExecutor, Listener {
                 player.sendMessage("Claimed this zone");
                 return true;
             } else {
-                player.sendMessage("Could not claim this zone");
+                player.sendMessage(ChatColor.RED + "Could not claim this zone");
                 return false;
             }
         } else if(label.equalsIgnoreCase("unclaim")) {
@@ -79,42 +79,42 @@ public class ClaimModule implements CommandExecutor, Listener {
             if(!(commandSender instanceof Player)) return false;
             Player player = (Player) commandSender;
             if(args.length < 1) {
-                player.sendMessage("Player name missing");
+                player.sendMessage(ChatColor.RED + "Player name missing");
                 return false;
             }
             Player scopedPlayer = Bukkit.getPlayer(args[0]);
             if(scopedPlayer == null) {
-                player.sendMessage("Invalid player");
+                player.sendMessage(ChatColor.RED + "Invalid player");
                 return false;
             }
             boolean addedToClaim = ClaimUtils.addPlayerToClaim(player.getUniqueId(), player.getLocation(), scopedPlayer.getUniqueId());
             if(!addedToClaim) {
-                player.sendMessage("Could not add this player to this claim");
+                player.sendMessage(ChatColor.RED + "Could not add this player to this claim");
                 return false;
             } else {
-                player.sendMessage("Added " + args[0] + " to your claim");
-                scopedPlayer.sendMessage(player.getName() + " added you to his claim");
+                player.sendMessage(ChatColor.ITALIC + "Added " + ChatColor.BLUE + scopedPlayer.getName() + ChatColor.WHITE + " to your claim");
+                scopedPlayer.sendMessage(ChatColor.ITALIC + "" + ChatColor.BLUE + player.getName() + ChatColor.WHITE + " added you to his claim");
                 return true;
             }
         } else if(label.equalsIgnoreCase("removefromclaim")) {
             if(!(commandSender instanceof Player)) return false;
             Player player = (Player) commandSender;
-            if(args.length < 1) {
-                player.sendMessage("Player name missing");
+            if(args.length == 0) {
+                player.sendMessage(ChatColor.RED + "Player name missing");
                 return false;
             }
             Player scopedPlayer = Bukkit.getPlayer(args[0]);
             if(scopedPlayer == null) {
-                player.sendMessage("Invalid player");
+                player.sendMessage(ChatColor.RED + "Invalid player");
                 return false;
             }
             boolean removedFromClaim = ClaimUtils.removePlayerFromClaim(player.getUniqueId(), player.getLocation(), scopedPlayer.getUniqueId());
             if(!removedFromClaim) {
-                player.sendMessage("Could not remove this player from this claim");
+                player.sendMessage(ChatColor.RED + "Could not remove this player from this claim");
                 return false;
             } else {
-                player.sendMessage("Removed " + args[0] + " from your claim");
-                scopedPlayer.sendMessage(player.getName() + " removed you from his claim");
+                player.sendMessage(ChatColor.ITALIC + "Removed " + ChatColor.BLUE + scopedPlayer.getName() + ChatColor.WHITE + " from your claim");
+                scopedPlayer.sendMessage(ChatColor.ITALIC + "" + ChatColor.BLUE + player.getName() + ChatColor.WHITE + " removed you from his claim");
                 return true;
             }
         } else if(label.equalsIgnoreCase("claims")) {
@@ -135,6 +135,9 @@ public class ClaimModule implements CommandExecutor, Listener {
         return false;
     }
 
+    /*
+       Prevent player from interacting in someone's claim, unless he's authorized
+     */
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
@@ -149,6 +152,9 @@ public class ClaimModule implements CommandExecutor, Listener {
             event.setCancelled(true);
     }
 
+    /*
+       Checking where the player is to know if he's in a claim or no
+     */
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
@@ -163,6 +169,9 @@ public class ClaimModule implements CommandExecutor, Listener {
         }
     }
 
+    /*
+       Prevent player from abusing explosions to grief a claim
+     */
     @EventHandler
     public void onEntityExplode(EntityExplodeEvent event) {
         Entity entity = event.getEntity();

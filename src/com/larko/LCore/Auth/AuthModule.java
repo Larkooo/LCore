@@ -16,23 +16,12 @@ import java.util.*;
 import static com.larko.LCore.Utils.AuthUtils.*;
 
 public class AuthModule implements Listener {
-    // static ArrayList loggedInPlayers = new ArrayList<UUID>();
-    static HashMap awaitingLoginPlayers = new HashMap<UUID, String>();
+    public static Map awaitingLoginPlayers = new HashMap<UUID, AuthState>();
 
     public AuthModule() {
+        // Ask the players to re-login if the plugin is restarted / auth module reinitialized
         for(Player player : Bukkit.getServer().getOnlinePlayers()) {
-            boolean hasAlreadyAccount = isPlayerRegistered(player.getUniqueId());
-
-            if(hasAlreadyAccount) {
-                player.sendTitle(ChatColor.RED + "Login", ChatColor.GRAY + "Please type your password in the chat", 1,100,3);
-                awaitingLoginPlayers.put(player.getUniqueId(), "login");
-            } else {
-                player.sendTitle(ChatColor.RED +"Create an account",  ChatColor.GRAY + "Please choose a password and type it in the chat", 1,100,3);
-                awaitingLoginPlayers.put(player.getUniqueId(), "register");
-            }
-            player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 100000, 100, true, false, false));
-            player.setCanPickupItems(false);
-            player.setInvulnerable(true);
+            askAuth(player);
         }
     }
 
@@ -41,24 +30,12 @@ public class AuthModule implements Listener {
     public void onPlayerLogin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        boolean hasAlreadyAccount = isPlayerRegistered(player.getUniqueId());
-
-        if(hasAlreadyAccount) {
-            player.sendTitle(ChatColor.RED + "Login", ChatColor.GRAY + "Please type your password in the chat", 1,100,3);
-            awaitingLoginPlayers.put(player.getUniqueId(), "login");
-        } else {
-            player.sendTitle(ChatColor.RED +"Create an account",  ChatColor.GRAY + "Please choose a password and type it in the chat", 1,100,3);
-            awaitingLoginPlayers.put(player.getUniqueId(), "register");
-        }
-        player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 100000, 100, true, false, false));
-        player.setCanPickupItems(false);
-        player.setInvulnerable(true);
-
-
+        askAuth(player);
     }
 
-    /* Teleport the player to his previous position if he's not logged in
-    Aka Freezing him
+    /*
+       Teleport the player to his previous position if he's not logged in
+       Aka Freezing him
      */
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
@@ -69,36 +46,51 @@ public class AuthModule implements Listener {
         }
     }
 
+    /*
+       Wait for input from user
+       Input : password, for registering or logging in
+     */
     @EventHandler
     public void onPlayerMessage(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
         if(!awaitingLoginPlayers.containsKey(player.getUniqueId())) return;
-        String method = (String) awaitingLoginPlayers.get(player.getUniqueId());
+        AuthState method = (AuthState) awaitingLoginPlayers.get(player.getUniqueId());
         String message = event.getMessage();
-        if(method == "register") {
-            event.setCancelled(true);
-            registerPlayer(player.getUniqueId(), message);
-            awaitingLoginPlayers.replace(player.getUniqueId(), "login");
+        // Delete message
+        event.setCancelled(true);
+        if(method == AuthState.AWAITING_REGISTER) {
+            boolean registered = registerPlayer(player.getUniqueId(), message);
+            if(!registered) {
+                player.sendMessage(ChatColor.RED + "An error occurred. Please try registering again.");
+                return;
+            }
+            awaitingLoginPlayers.replace(player.getUniqueId(), AuthState.AWAITING_LOGIN);
             player.sendMessage("Successfully registered. Please type your password again to proceed.");
         } else {
-            event.setCancelled(true);
             if(loginPlayer(player.getUniqueId(), message) != null) {
+                /*
+                If player logged in, remove him from awaiting login list
+                 */
                 awaitingLoginPlayers.remove(player.getUniqueId());
-                // loggedInPlayers.add(player.getUniqueId());
-                player.sendMessage("Successfully logged in");
+                player.sendMessage(ChatColor.GREEN + "Successfully logged in.");
                 System.out.println(LPlayer.getPlayers().size());
+                // Remove effects / attributes
                 Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("LCore"), () -> {
                     player.removePotionEffect(PotionEffectType.BLINDNESS);
                     player.setCanPickupItems(true);
                     player.setInvulnerable(false);
                 });
             } else {
-                player.sendMessage(ChatColor.RED + "Bad password");
+                player.sendMessage(ChatColor.RED + "Bad password.");
             }
         }
 
     }
 
+    /*
+      Cancel player interaction event if the player is not logged in.
+      To prevent the player from interacting with the world while being frozen, not logged in.
+     */
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event){
         Player player = event.getPlayer();
@@ -107,6 +99,10 @@ public class AuthModule implements Listener {
         }
     }
 
+
+    /*
+       Destroy player instance if the player logout from the server
+     */
     @EventHandler
     public void onPlayerLeave(PlayerQuitEvent event) {
         LPlayer player = LPlayer.findByUUID(event.getPlayer().getUniqueId());
