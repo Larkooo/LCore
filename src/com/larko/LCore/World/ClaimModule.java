@@ -187,6 +187,7 @@ public class ClaimModule implements CommandExecutor, Listener {
                     break;
                 }
             }
+            // Cancelling explosion only if owner is not found near the entity that exploded
             event.setCancelled(!foundClaimOwnerInRadius);
         }
     }
