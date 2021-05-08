@@ -204,9 +204,25 @@ public class ClaimUtils {
     }
 
     public static boolean checkClaim(UUID uuid, Location location) {
+        // first check in lplayer collection (connected players), for performance reasons
         for(LPlayer player : LPlayer.getPlayers()) {
             for (Claim claim : player.getClaims()) {
-                if(claim.inRadius(location) && !(player.getUuid().equals(uuid))) {
+                if(claim.inRadius(location) && !(player.getUuid().equals(uuid)) && !(claim.getAuthorizedPlayers().contains(uuid))) {
+                    return false;
+                }
+            }
+        }
+        // if not returned, check in cachedPlayersData, that includes offline players
+        JSONArray cachedPlayersData = (JSONArray) Main.cachedPlayersData;
+        for(int i = 0; i < cachedPlayersData.size(); i++){
+            JSONObject playerObj = (JSONObject) cachedPlayersData.get(i);
+            UUID playerUuid = UUID.fromString(playerObj.get("uuid").toString());
+            JSONArray claims = (JSONArray) playerObj.get("claims");
+            for(int n = 0; n < claims.size(); n++) {
+                JSONObject claim = (JSONObject) claims.get(n);
+                JSONArray claimAuthorizedPlayers = (JSONArray) claim.get("players");
+                boolean isInRadius = Utilities.checkIfInRadius(location, (String)claim.get("pos"), Integer.parseInt((String)claim.get("radius")));
+                if(isInRadius && !(playerUuid.equals(uuid)) && !(claimAuthorizedPlayers.contains(uuid.toString()))) {
                     return false;
                 }
             }

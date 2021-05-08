@@ -8,5 +8,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="spigot-1.16.4" level="project" />
+    <orderEntry type="library" name="JDA-4.2.1_253-withDependencies-min" level="project" />
+    <orderEntry type="library" name="JDA-CommandHandler-1.0" level="project" />
   </component>
 </module>

@@ -1,6 +1,10 @@
 package com.larko.LCore.Auth;
 
+import com.larko.LCore.Discord.Bot;
 import com.larko.LCore.Structures.LPlayer;
+import com.larko.LCore.Utils.Utilities;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Activity;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -79,6 +83,7 @@ public class AuthModule implements Listener {
                     player.removePotionEffect(PotionEffectType.BLINDNESS);
                     player.setCanPickupItems(true);
                     player.setInvulnerable(false);
+                    player.resetTitle();
                 });
             } else {
                 player.sendMessage(ChatColor.RED + "Bad password.");

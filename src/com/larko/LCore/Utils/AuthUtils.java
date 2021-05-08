@@ -102,4 +102,78 @@ public class AuthUtils {
         }
         return player;
     }
+
+    static public boolean linkDiscordAccount(UUID uuid, String discordId) {
+        JSONParser jsonParser = new JSONParser();
+        try {
+            Object obj = jsonParser.parse(new FileReader(new File(Utilities.dataFolder, "players.json")));
+
+            JSONArray players = (JSONArray) obj;
+            Iterator<JSONObject> iterator = players.iterator();
+            int count = 0;
+            while (iterator.hasNext()){
+                JSONObject playerObj = iterator.next();
+                if(uuid.toString().equals((String) playerObj.get("uuid"))) {
+
+                    Main.cachedPlayersData.set(count, ((JSONObject)Main.cachedPlayersData.get(count)).put("discordId", discordId));
+                    playerObj.put("discordId", discordId);
+
+                    FileWriter playersFile = new FileWriter(new File(Utilities.dataFolder, "players.json"));
+                    playersFile.write(players.toJSONString());
+                    playersFile.flush();
+                    playersFile.close();
+                    return true;
+                }
+                count++;
+            }
+
+            return false;
+        } catch(Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    static public boolean unlinkDiscordAccount(UUID uuid) {
+        JSONParser jsonParser = new JSONParser();
+        try {
+            Object obj = jsonParser.parse(new FileReader(new File(Utilities.dataFolder, "players.json")));
+
+            JSONArray players = (JSONArray) obj;
+            Iterator<JSONObject> iterator = players.iterator();
+            int count = 0;
+            while (iterator.hasNext()){
+                JSONObject playerObj = iterator.next();
+                if(uuid.toString().equals((String) playerObj.get("uuid"))) {
+
+                    ((JSONObject)Main.cachedPlayersData.get(count)).remove("discordId");
+                    playerObj.remove("discordId");
+
+                    FileWriter playersFile = new FileWriter(new File(Utilities.dataFolder, "players.json"));
+                    playersFile.write(players.toJSONString());
+                    playersFile.flush();
+                    playersFile.close();
+                    return true;
+                }
+                count++;
+            }
+
+            return false;
+        } catch(Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    static public LPlayer findPlayerWithDiscord(String discordId) {
+        Iterator<JSONObject> iterator = Main.cachedPlayersData.iterator();
+        while (iterator.hasNext()) {
+            JSONObject player = iterator.next();
+            if (!player.containsKey("discordId")) continue;
+            if (player.get("discordId").toString().equals(discordId)) {
+                return LPlayer.findByUUID(UUID.fromString(player.get("uuid").toString()));
+            }
+        }
+        return null;
+    }
 }

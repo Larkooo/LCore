@@ -4,11 +4,15 @@ import com.larko.LCore.Structures.Position;
 import net.minecraft.server.v1_16_R3.ResourceKey;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.configuration.file.FileConfiguration;
 
 import java.io.File;
 
 public class Utilities {
     public static File dataFolder;
+    public static FileConfiguration config;
+    public static final String tokenConfigPlaceholder = "PUT_YOUR_BOT_TOKEN_HERE";
+
 
     public static boolean tryParseInt(String value) {
         try {

@@ -6,6 +6,8 @@
         <element id="file-copy" path="$PROJECT_DIR$/META-INF/MANIFEST.MF" />
       </element>
       <element id="module-output" name="LCore" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/libs/JDA-4.2.1_253-withDependencies-min.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/libs/JDA-CommandHandler-1.0.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

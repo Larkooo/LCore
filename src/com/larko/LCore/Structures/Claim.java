@@ -62,8 +62,13 @@ public class Claim {
             this.authorizedPlayers.remove(uuid);
     }
 
+    public JSONArray getAuthorizedPlayers()
+    {
+        return this.authorizedPlayers;
+    }
+
     public static Claim fromJSON(JSONObject jsonObject) {
-        return new Claim(
+        Claim claim = new Claim(
                 Position.fromStrings(
                         jsonObject.get("pos").toString(),
                         jsonObject.get("dimension").toString()
@@ -71,5 +76,7 @@ public class Claim {
                 Integer.parseInt(jsonObject.get("radius").toString()),
                 (JSONArray)jsonObject.get("players")
         );
+        System.out.println(claim.getAuthorizedPlayers().toJSONString());
+    return claim;
     }
 }

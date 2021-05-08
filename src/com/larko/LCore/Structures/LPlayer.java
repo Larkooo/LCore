@@ -1,12 +1,14 @@
 package com.larko.LCore.Structures;
 
 import com.larko.LCore.Main;
+import com.larko.LCore.Utils.AuthUtils;
 import com.larko.LCore.Utils.ClaimUtils;
 import com.larko.LCore.Utils.HomeUtils;
 import org.bukkit.Location;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
@@ -17,12 +19,14 @@ public class LPlayer {
     private UUID uuid;
     private ArrayList<Home> homes;
     private ArrayList<Claim> claims;
+    private String linkedDiscordId;
     //private org.bukkit.entity.Player entity;
 
-    public LPlayer(UUID uuid, ArrayList<Home> homes, ArrayList<Claim> claims /*, org.bukkit.entity.Player player */) {
+    public LPlayer(UUID uuid, ArrayList<Home> homes, ArrayList<Claim> claims, @Nullable String linkedDiscordId /*, org.bukkit.entity.Player player */) {
         this.uuid = uuid;
         this.homes = homes;
         this.claims = claims;
+        this.linkedDiscordId = linkedDiscordId;
         //this.entity = player;
         players.add(this);
     }
@@ -101,6 +105,14 @@ public class LPlayer {
         return found;
     }
 
+    public String getLinkedDiscordId() {
+        return linkedDiscordId;
+    }
+
+    public boolean setLinkedDiscordId(String discordId) {
+        return AuthUtils.linkDiscordAccount(uuid, discordId);
+    }
+
     public static LPlayer fromJSON(JSONObject jsonObject) {
         // claims
         Iterator<JSONObject> claimsIterator = ((JSONArray) jsonObject.get("claims")).iterator();
@@ -121,7 +133,7 @@ public class LPlayer {
             homes.add(new Home(key, Position.fromStrings(homesJson.get(key).toString(), "overworld")));
         }
 
-        LPlayer player = new LPlayer(UUID.fromString(jsonObject.get("uuid").toString()), homes, claims);
+        LPlayer player = new LPlayer(UUID.fromString(jsonObject.get("uuid").toString()), homes, claims, jsonObject.containsKey("discordId") ? jsonObject.get("discordId").toString() : null);
         return player;
     }
 
