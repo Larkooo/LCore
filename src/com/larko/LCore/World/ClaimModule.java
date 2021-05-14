@@ -27,7 +27,6 @@ public class ClaimModule implements CommandExecutor, Listener {
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
-        System.out.println(label);
         if(label.equalsIgnoreCase("claim") || label.equalsIgnoreCase("setclaim")) {
             if(!(commandSender instanceof Player)) return false;
             Player player = (Player) commandSender;
@@ -162,7 +161,6 @@ public class ClaimModule implements CommandExecutor, Listener {
         if(claimOwner != null && !(inClaimPlayers.contains(player.getUniqueId()))) {
             player.sendTitle("", ChatColor.BLUE + "Entered " + claimOwner.getName() + "'s claim", 1, 50, 3);
             inClaimPlayers.add(player.getUniqueId());
-            System.out.println("lol");
         } else if(claimOwner == null && inClaimPlayers.contains(player.getUniqueId())) {
             inClaimPlayers.remove(player.getUniqueId());
             player.sendTitle("", ChatColor.GREEN + "Wilderness", 1, 50, 3);

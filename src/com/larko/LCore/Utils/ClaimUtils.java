@@ -175,7 +175,6 @@ public class ClaimUtils {
                         JSONObject cachedClaim = cachedClaimsIterator.next();
                         boolean isInRadius = Utilities.checkIfInRadius(loc, (String)claim.get("pos"),Integer.parseInt((String)claim.get("radius")));
                         if(isInRadius) {
-                            System.out.println("stp marche");
                             // JSON
                             JSONArray playersClaim = (JSONArray) claim.get("players");
                             if(playersClaim.contains(playerUuid.toString())) {
@@ -205,13 +204,13 @@ public class ClaimUtils {
 
     public static boolean checkClaim(UUID uuid, Location location) {
         // first check in lplayer collection (connected players), for performance reasons
-        for(LPlayer player : LPlayer.getPlayers()) {
+        /* for(LPlayer player : LPlayer.getPlayers()) {
             for (Claim claim : player.getClaims()) {
                 if(claim.inRadius(location) && !(player.getUuid().equals(uuid)) && !(claim.getAuthorizedPlayers().contains(uuid))) {
                     return false;
                 }
             }
-        }
+        }*/
         // if not returned, check in cachedPlayersData, that includes offline players
         JSONArray cachedPlayersData = (JSONArray) Main.cachedPlayersData;
         for(int i = 0; i < cachedPlayersData.size(); i++){

@@ -56,4 +56,8 @@ public class Position {
     public Location toLocation() {
         return new Location(Bukkit.getWorld("world"), this.x, this.y, this.z);
     }
+
+    public String toString() {
+        return this.x + " " + this.y + " " + this.z + " " + this.environment.toString();
+    }
 }

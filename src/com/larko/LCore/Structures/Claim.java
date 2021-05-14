@@ -76,7 +76,6 @@ public class Claim {
                 Integer.parseInt(jsonObject.get("radius").toString()),
                 (JSONArray)jsonObject.get("players")
         );
-        System.out.println(claim.getAuthorizedPlayers().toJSONString());
     return claim;
     }
 }
