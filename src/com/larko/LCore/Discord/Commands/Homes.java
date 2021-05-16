@@ -22,11 +22,12 @@ public class Homes implements CommandListener {
         String userId = member.getId();
 
         LPlayer lplayer = AuthUtils.findPlayerWithDiscord(userId);
-        OfflinePlayer player = Bukkit.getPlayer(lplayer.getUuid());
+        System.out.println(lplayer);
         if (lplayer == null) {
             message.reply("You haven't linked your minecraft LCore account yet, please link it by running `" + Utilities.config.getString("bot_prefix") + "link`").queue();
             return;
         }
+        OfflinePlayer player = Bukkit.getPlayer(lplayer.getUuid());
         EmbedBuilder embedBuilder = new EmbedBuilder();
         embedBuilder.setAuthor(player.getName());
         embedBuilder.setTitle("Homes");

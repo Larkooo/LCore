@@ -4,6 +4,7 @@ package com.larko.LCore.Discord.Commands;
 import com.github.stackovernorth.jda.commandhandler.listener.CommandListener;
 
 import com.larko.LCore.Structures.Claim;
+import com.larko.LCore.Structures.Home;
 import com.larko.LCore.Structures.LPlayer;
 import com.larko.LCore.Utils.AuthUtils;
 import com.larko.LCore.Utils.Utilities;
@@ -14,8 +15,8 @@ import org.bukkit.OfflinePlayer;
 import org.json.simple.JSONObject;
 
 
-public class Claims implements CommandListener {
-    public Claims() {}
+public class Restart implements CommandListener {
+    public Restart() {}
     @Override
     public void onCommand(Member member, TextChannel textChannel, Message message, String[] args) {
         String userId = member.getId();
@@ -26,16 +27,12 @@ public class Claims implements CommandListener {
             return;
         }
         OfflinePlayer player = Bukkit.getPlayer(lplayer.getUuid());
-        EmbedBuilder embedBuilder = new EmbedBuilder();
-        embedBuilder.setAuthor(player.getName());
-        embedBuilder.setTitle("Claims");
-        int count = 1;
-        for (Claim claim : lplayer.getClaims()) {
-            embedBuilder.addField("#" + count + " Claim", "Position : `" + claim.getPosition().toString() + "`\nRadius : `" + claim.getRadius() + "`"  , true);
-            count++;
+        if (!player.isOp()) {
+            message.reply("You need to be **OP** to use this command").queue();
+            return;
         }
-        embedBuilder.setFooter("LCore - " + lplayer.getUuid().toString());
-        message.reply(embedBuilder.build()).queue();
+        message.reply("Server is restarting...").queue();
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "restart");
     }
 }
 

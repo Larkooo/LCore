@@ -3,12 +3,9 @@ package com.larko.LCore.Discord;
 import com.github.stackovernorth.jda.commandhandler.api.command.CommandBuilder;
 import com.github.stackovernorth.jda.commandhandler.api.handler.CommandHandler;
 import com.github.stackovernorth.jda.commandhandler.api.handler.CommandHandlerBuilder;
-import com.larko.LCore.Discord.Commands.Claims;
-import com.larko.LCore.Discord.Commands.Homes;
-import com.larko.LCore.Discord.Commands.Link;
+import com.larko.LCore.Discord.Commands.*;
 import com.larko.LCore.Structures.Claim;
 import com.larko.LCore.Utils.Utilities;
-import com.sun.javaws.exceptions.MissingFieldException;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.Permission;
@@ -61,6 +58,13 @@ public class Bot {
             );
 
             commandHandler.addCommand(
+                    new CommandBuilder("unlink", new Unlink())
+                            .setAlias("disconnect")
+                            .setDescription("Disconnect the minecraft LCore account linked to your discord")
+                            .build()
+            );
+
+            commandHandler.addCommand(
                     new CommandBuilder("homes", new Homes())
                             .setDescription("Get the claims linked to your minecraft LCore account")
                             .build()
@@ -69,6 +73,26 @@ public class Bot {
             commandHandler.addCommand(
                     new CommandBuilder("claims", new Claims())
                             .setDescription("Get the homes linked to your minecraft LCore account")
+                            .build()
+            );
+            commandHandler.addCommand(
+                    new CommandBuilder("exec", new Exec())
+                            .setDescription("Execute a command on the server")
+                            .build()
+            );
+            commandHandler.addCommand(
+                    new CommandBuilder("players", new Players())
+                            .setDescription("Retrieve server player list")
+                            .build()
+            );
+            commandHandler.addCommand(
+                    new CommandBuilder("reload", new Reload())
+                            .setDescription("Reload the server")
+                            .build()
+            );
+            commandHandler.addCommand(
+                    new CommandBuilder("restart", new Restart())
+                            .setDescription("Restart the server")
                             .build()
             );
 
