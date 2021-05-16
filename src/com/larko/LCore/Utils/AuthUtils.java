@@ -2,7 +2,9 @@ package com.larko.LCore.Utils;
 
 import com.larko.LCore.Auth.AuthModule;
 import com.larko.LCore.Structures.LPlayer;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -42,19 +44,7 @@ public class AuthUtils {
     }
 
     static public boolean isPlayerRegistered(UUID uuid) {
-        boolean registered = false;
-
-
-        Iterator<JSONObject> iterator = Main.cachedPlayersData.iterator();
-        while (iterator.hasNext()){
-            JSONObject playerObj = iterator.next();
-            if(uuid.toString().equals((String) playerObj.get("uuid"))) {
-                registered = true;
-                break;
-            }
-        }
-
-        return registered;
+        return LPlayer.findByUUID(uuid) != null;
     }
 
     static public boolean registerPlayer(UUID uuid, String password) {
@@ -73,8 +63,9 @@ public class AuthUtils {
 
             // Add to json
             players.add(player);
-            // Add to cache
-            Main.cachedPlayersData.add(player);
+
+            // just add to the players list
+            LPlayer.fromJSON(player);
 
 
             FileWriter playersFile = new FileWriter(new File(Utilities.dataFolder, "players.json"));
@@ -91,12 +82,13 @@ public class AuthUtils {
 
     static public LPlayer loginPlayer(UUID uuid, String password) {
         LPlayer player = null;
-        Iterator<JSONObject> iterator = Main.cachedPlayersData.iterator();
-        while (iterator.hasNext()){
-            JSONObject playerObj = iterator.next();
-            if(uuid.toString().equals((String) playerObj.get("uuid"))) {
-                if(BCrypt.checkpw(password, (String) playerObj.get("password")))
-                    player = LPlayer.fromJSON(playerObj);
+        for (LPlayer lplayer : LPlayer.getPlayers()) {
+            if(uuid.equals(lplayer.getUuid())) {
+                if(BCrypt.checkpw(password, lplayer.getHashedPassword()))
+                {
+                    player = LPlayer.findByUUID(uuid);
+                    player.setConnected(true);
+                }
                 break;
             }
         }
@@ -114,9 +106,8 @@ public class AuthUtils {
             while (iterator.hasNext()){
                 JSONObject playerObj = iterator.next();
                 if(uuid.toString().equals((String) playerObj.get("uuid"))) {
-
-                    Main.cachedPlayersData.set(count, ((JSONObject)Main.cachedPlayersData.get(count)).put("discordId", discordId));
                     playerObj.put("discordId", discordId);
+                    LPlayer.findByUUID(uuid).setLinkedDiscordId(discordId);
 
                     FileWriter playersFile = new FileWriter(new File(Utilities.dataFolder, "players.json"));
                     playersFile.write(players.toJSONString());
@@ -145,9 +136,8 @@ public class AuthUtils {
             while (iterator.hasNext()){
                 JSONObject playerObj = iterator.next();
                 if(uuid.toString().equals((String) playerObj.get("uuid"))) {
-
-                    ((JSONObject)Main.cachedPlayersData.get(count)).remove("discordId");
                     playerObj.remove("discordId");
+                    LPlayer.findByUUID(uuid).setLinkedDiscordId(null);
 
                     FileWriter playersFile = new FileWriter(new File(Utilities.dataFolder, "players.json"));
                     playersFile.write(players.toJSONString());
@@ -163,17 +153,5 @@ public class AuthUtils {
             e.printStackTrace();
             return false;
         }
-    }
-
-    static public LPlayer findPlayerWithDiscord(String discordId) {
-        Iterator<JSONObject> iterator = Main.cachedPlayersData.iterator();
-        while (iterator.hasNext()) {
-            JSONObject player = iterator.next();
-            if (!player.containsKey("discordId")) continue;
-            if (player.get("discordId").toString().equals(discordId)) {
-                return LPlayer.findByUUID(UUID.fromString(player.get("uuid").toString()));
-            }
-        }
-        return null;
     }
 }

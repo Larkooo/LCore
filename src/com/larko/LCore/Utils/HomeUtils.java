@@ -24,20 +24,14 @@ public class HomeUtils {
             JSONArray players = (JSONArray) obj;
             // JSON Iterator
             Iterator<JSONObject> iterator = players.iterator();
-            // Cached players Iterator
-            Iterator<JSONObject> cachedIterator = Main.cachedPlayersData.iterator();
 
-            while (iterator.hasNext() && cachedIterator.hasNext()){
+            while (iterator.hasNext()){
                 JSONObject playerObj = iterator.next();
-                JSONObject cachedPlayer = cachedIterator.next();
                 if(playerUuid.toString().equals((String) playerObj.get("uuid"))) {
                     JSONObject homes = (JSONObject) playerObj.get("homes");
-                    JSONObject cachedHomes = (JSONObject) cachedPlayer.get("homes");
 
                     // Put to json
                     homes.put(name, playerLoc.getX() + " " + playerLoc.getY() + " " + playerLoc.getZ());
-                    // Put to cache
-                    cachedHomes.put(name, playerLoc.getX() + " " + playerLoc.getY() + " " + playerLoc.getZ());
 
                     FileWriter playersFile = new FileWriter(new File(Utilities.dataFolder, "players.json"));
                     playersFile.write(players.toJSONString());
@@ -62,18 +56,12 @@ public class HomeUtils {
             JSONArray players = (JSONArray) obj;
             // JSON Iterator
             Iterator<JSONObject> iterator = players.iterator();
-            // Cached players Iterator
-            Iterator<JSONObject> cachedIterator = Main.cachedPlayersData.iterator();
-            while (iterator.hasNext() && cachedIterator.hasNext()){
+            while (iterator.hasNext()){
                 JSONObject playerObj = iterator.next();
-                JSONObject cachedPlayer = cachedIterator.next();
                 if(uuid.toString().equals((String) playerObj.get("uuid"))) {
                     JSONObject homes = (JSONObject) playerObj.get("homes");
-                    JSONObject cachedHomes = (JSONObject) cachedPlayer.get("homes");
                     // Remove from json
                     homes.remove(name);
-                    // Remove from cache
-                    cachedHomes.remove(name);
 
 
                     FileWriter playersFile = new FileWriter(new File(Utilities.dataFolder, "players.json"));

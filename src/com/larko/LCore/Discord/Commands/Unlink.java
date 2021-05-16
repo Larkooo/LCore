@@ -12,7 +12,7 @@ public class Unlink implements CommandListener {
     public Unlink() {}
     @Override
     public void onCommand(Member member, TextChannel textChannel, Message message, String[] args) {
-        LPlayer lPlayer = AuthUtils.findPlayerWithDiscord(member.getId());
+        LPlayer lPlayer = LPlayer.findByDiscord(member.getId());
         if (lPlayer == null) {
             message.reply("No minecraft LCore account linked to your account found").queue();
             return;

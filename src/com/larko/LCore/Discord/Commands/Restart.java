@@ -21,18 +21,23 @@ public class Restart implements CommandListener {
     public void onCommand(Member member, TextChannel textChannel, Message message, String[] args) {
         String userId = member.getId();
 
-        LPlayer lplayer = AuthUtils.findPlayerWithDiscord(userId);
+        LPlayer lplayer = LPlayer.findByDiscord(userId);
         if (lplayer == null) {
             message.reply("You haven't linked your minecraft LCore account yet, please link it by running `" + Utilities.config.getString("bot_prefix") + "link`").queue();
             return;
         }
-        OfflinePlayer player = Bukkit.getPlayer(lplayer.getUuid());
+        OfflinePlayer player = Bukkit.getOfflinePlayer(lplayer.getUuid());
         if (!player.isOp()) {
             message.reply("You need to be **OP** to use this command").queue();
             return;
         }
-        message.reply("Server is restarting...").queue();
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "restart");
+        Message restartMessage = message.reply("Contacting server...").complete();
+        long start = System.currentTimeMillis();
+        Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("LCore"), () ->
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "restart")
+        );
+        long finish = System.currentTimeMillis();
+        restartMessage.editMessage("Issued restart command in `" + (finish - start) + "ms`. Server is currently restarting.").queue();
     }
 }
 

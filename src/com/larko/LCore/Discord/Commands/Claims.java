@@ -3,6 +3,7 @@ package com.larko.LCore.Discord.Commands;
 
 import com.github.stackovernorth.jda.commandhandler.listener.CommandListener;
 
+import com.larko.LCore.Discord.Bot;
 import com.larko.LCore.Structures.Claim;
 import com.larko.LCore.Structures.LPlayer;
 import com.larko.LCore.Utils.AuthUtils;
@@ -20,15 +21,17 @@ public class Claims implements CommandListener {
     public void onCommand(Member member, TextChannel textChannel, Message message, String[] args) {
         String userId = member.getId();
 
-        LPlayer lplayer = AuthUtils.findPlayerWithDiscord(userId);
+        LPlayer lplayer = LPlayer.findByDiscord(userId);
         if (lplayer == null) {
             message.reply("You haven't linked your minecraft LCore account yet, please link it by running `" + Utilities.config.getString("bot_prefix") + "link`").queue();
             return;
         }
-        OfflinePlayer player = Bukkit.getPlayer(lplayer.getUuid());
+        OfflinePlayer player = Bukkit.getOfflinePlayer(lplayer.getUuid());
+        String playerName = player.getName();
         EmbedBuilder embedBuilder = new EmbedBuilder();
-        embedBuilder.setAuthor(player.getName());
+        embedBuilder.setAuthor(playerName, "https://namemc.com/" + playerName, "https://mc-heads.net/head/" + playerName);
         embedBuilder.setTitle("Claims");
+        embedBuilder.setColor(Bot.primaryColor);
         int count = 1;
         for (Claim claim : lplayer.getClaims()) {
             embedBuilder.addField("#" + count + " Claim", "Position : `" + claim.getPosition().toString() + "`\nRadius : `" + claim.getRadius() + "`"  , true);

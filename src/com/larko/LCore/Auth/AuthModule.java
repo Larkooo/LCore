@@ -45,7 +45,7 @@ public class AuthModule implements Listener {
     public void onPlayerMove(PlayerMoveEvent event) {
         Location before = event.getFrom();
         Player player = event.getPlayer();
-        if(LPlayer.findByUUID(player.getUniqueId()) == null) {
+        if(!LPlayer.findByUUID(player.getUniqueId()).isConnected()) {
             player.teleport(before);
         }
     }
@@ -99,7 +99,7 @@ public class AuthModule implements Listener {
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event){
         Player player = event.getPlayer();
-        if(LPlayer.findByUUID(player.getUniqueId()) == null) {
+        if(!LPlayer.findByUUID(player.getUniqueId()).isConnected()) {
             event.setCancelled(true);
         }
     }
@@ -111,7 +111,6 @@ public class AuthModule implements Listener {
     @EventHandler
     public void onPlayerLeave(PlayerQuitEvent event) {
         LPlayer player = LPlayer.findByUUID(event.getPlayer().getUniqueId());
-        if(player != null)
-            LPlayer.getPlayers().remove(player);
+        player.setConnected(false);
     }
 }

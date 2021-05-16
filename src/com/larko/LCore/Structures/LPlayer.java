@@ -4,6 +4,7 @@ import com.larko.LCore.Main;
 import com.larko.LCore.Utils.AuthUtils;
 import com.larko.LCore.Utils.ClaimUtils;
 import com.larko.LCore.Utils.HomeUtils;
+import javafx.beans.DefaultProperty;
 import org.bukkit.Location;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -17,16 +18,20 @@ import java.util.UUID;
 public class LPlayer {
     private static ArrayList<LPlayer> players = new ArrayList<>();
     private UUID uuid;
+    private String hashedPassword;
     private ArrayList<Home> homes;
     private ArrayList<Claim> claims;
     private String linkedDiscordId;
+    private boolean connected;
     //private org.bukkit.entity.Player entity;
 
-    public LPlayer(UUID uuid, ArrayList<Home> homes, ArrayList<Claim> claims, @Nullable String linkedDiscordId /*, org.bukkit.entity.Player player */) {
+    public LPlayer(UUID uuid, String hashedPassword, ArrayList<Home> homes, ArrayList<Claim> claims, @Nullable String linkedDiscordId /*, org.bukkit.entity.Player player */) {
         this.uuid = uuid;
+        this.hashedPassword = hashedPassword;
         this.homes = homes;
         this.claims = claims;
         this.linkedDiscordId = linkedDiscordId;
+        this.connected = false;
         //this.entity = player;
         players.add(this);
     }
@@ -34,6 +39,11 @@ public class LPlayer {
     public UUID getUuid() {
         return this.uuid;
     }
+
+    public boolean isConnected() { return this.connected; }
+    public void setConnected(boolean connected) { this.connected = connected; }
+
+    public String getHashedPassword() { return this.hashedPassword; }
 
     public ArrayList<Claim> getClaims() {
         return this.claims;
@@ -133,7 +143,7 @@ public class LPlayer {
             homes.add(new Home(key, Position.fromStrings(homesJson.get(key).toString(), "overworld")));
         }
 
-        LPlayer player = new LPlayer(UUID.fromString(jsonObject.get("uuid").toString()), homes, claims, jsonObject.containsKey("discordId") ? jsonObject.get("discordId").toString() : null);
+        LPlayer player = new LPlayer(UUID.fromString(jsonObject.get("uuid").toString()), jsonObject.get("password").toString(), homes, claims, jsonObject.containsKey("discordId") ? jsonObject.get("discordId").toString() : null);
         return player;
     }
 
@@ -142,13 +152,20 @@ public class LPlayer {
     }
 
     public static LPlayer findByUUID(UUID uuid) {
-        LPlayer found = null;
-        for(LPlayer player : players) {
-            if(player.uuid.equals(uuid)) {
-                found = player;
-            }
+        for (LPlayer player : players) {
+            if(player.uuid.equals(uuid))
+                return player;
+
         }
-        return found;
+        return null;
+    }
+
+    public static LPlayer findByDiscord(String discordId) {
+        for (LPlayer player : players) {
+            if (player.getLinkedDiscordId() == null) continue;
+            if (player.getLinkedDiscordId().equals(discordId)) return player;
+        }
+        return null;
     }
 
 }

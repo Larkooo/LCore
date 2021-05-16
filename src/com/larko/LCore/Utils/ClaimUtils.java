@@ -25,14 +25,10 @@ public class ClaimUtils {
             JSONArray players = (JSONArray) obj;
             // JSON Iterator
             Iterator<JSONObject> iterator = players.iterator();
-            // Cached players Iterator
-            Iterator<JSONObject> cachedIterator = Main.cachedPlayersData.iterator();
-            while (iterator.hasNext() && cachedIterator.hasNext()){
+            while (iterator.hasNext()){
                 JSONObject playerObj = iterator.next();
-                JSONObject cachedPlayer = cachedIterator.next();
                 if(uuid.toString().equals((String) playerObj.get("uuid"))) {
                     JSONArray claims = (JSONArray) playerObj.get("claims");
-                    JSONArray cachedClaims = (JSONArray) cachedPlayer.get("claims");
                     JSONObject claimToAdd = new JSONObject();
                     claimToAdd.put("dimension", location.getWorld().getEnvironment().name());
                     claimToAdd.put("pos", location.getX() + " " + location.getY() + " " + location.getZ());
@@ -40,9 +36,6 @@ public class ClaimUtils {
                     claimToAdd.put("players", new JSONArray());
                     // Add to JSON
                     claims.add(claimToAdd);
-                    // Add to cache
-
-                    cachedClaims.add(claimToAdd);
 
                     FileWriter playersFile = new FileWriter(new File(Utilities.dataFolder, "players.json"));
                     playersFile.write(players.toJSONString());
@@ -66,25 +59,16 @@ public class ClaimUtils {
             JSONArray players = (JSONArray) obj;
             // JSON Iterator
             Iterator<JSONObject> iterator = players.iterator();
-            // Cached players Iterator
-            Iterator<JSONObject> cachedIterator = Main.cachedPlayersData.iterator();
-            while (iterator.hasNext() && cachedIterator.hasNext()) {
+            while (iterator.hasNext()) {
                 JSONObject playerObj = iterator.next();
-                JSONObject cachedPlayer = cachedIterator.next();
                 if (uuid.toString().equals((String) playerObj.get("uuid"))) {
                     JSONArray claims = (JSONArray) playerObj.get("claims");
-                    JSONArray cachedClaims = (JSONArray) cachedPlayer.get("claims");
                     // JSON claims iterator
                     Iterator<JSONObject> claimsIterator = claims.iterator();
-                    // Cached players claims iterator
-                    Iterator<JSONObject> cachedClaimsIterator = cachedClaims.iterator();
                     while(claimsIterator.hasNext()) {
                         JSONObject claim = claimsIterator.next();
-                        JSONObject cachedClaim = cachedClaimsIterator.next();
                         boolean isInRadius = Utilities.checkIfInRadius(playerLoc, (String)claim.get("pos"),Integer.parseInt((String)claim.get("radius")));
                         if(isInRadius) {
-                            // Cache remove
-                            cachedClaimsIterator.remove();
                             // JSON remove
                             claimsIterator.remove();
                             FileWriter playersFile = new FileWriter(new File(Utilities.dataFolder, "players.json"));
@@ -111,29 +95,20 @@ public class ClaimUtils {
             JSONArray players = (JSONArray) obj;
             // JSON Iterator
             Iterator<JSONObject> iterator = players.iterator();
-            // Cached players Iterator
-            Iterator<JSONObject> cachedIterator = Main.cachedPlayersData.iterator();
-            while (iterator.hasNext() && cachedIterator.hasNext()) {
+            while (iterator.hasNext()) {
                 JSONObject playerObj = iterator.next();
-                JSONObject cachedPlayer = cachedIterator.next();
                 if (authorUuid.toString().equals((String) playerObj.get("uuid"))) {
                     JSONArray claims = (JSONArray) playerObj.get("claims");
-                    JSONArray cachedClaims = (JSONArray) cachedPlayer.get("claims");
                     // JSON claims iterator
                     Iterator<JSONObject> claimsIterator = claims.iterator();
-                    // Cached players claims iterator
-                    Iterator<JSONObject> cachedClaimsIterator = cachedClaims.iterator();
                     while(claimsIterator.hasNext()) {
                         JSONObject claim = claimsIterator.next();
-                        JSONObject cachedClaim = cachedClaimsIterator.next();
                         boolean isInRadius = Utilities.checkIfInRadius(loc, (String)claim.get("pos"),Integer.parseInt((String)claim.get("radius")));
                         if(isInRadius) {
                             // JSON
                             JSONArray playersClaim = (JSONArray) claim.get("players");
                             playersClaim.add(playerUuid.toString());
                             // Cache
-                            JSONArray cachedPlayersClaim = (JSONArray) cachedClaim.get("players");
-                            cachedPlayersClaim.add(playerUuid.toString());
                             LPlayer.findByUUID(authorUuid).getClaim(loc).addPlayer(playerUuid);
 
                             FileWriter playersFile = new FileWriter(new File(Utilities.dataFolder, "players.json"));
@@ -158,32 +133,20 @@ public class ClaimUtils {
             JSONArray players = (JSONArray) obj;
             // JSON Iterator
             Iterator<JSONObject> iterator = players.iterator();
-            // Cached players Iterator
-            Iterator<JSONObject> cachedIterator = Main.cachedPlayersData.iterator();
-            while (iterator.hasNext() && cachedIterator.hasNext()) {
+            while (iterator.hasNext()) {
                 JSONObject playerObj = iterator.next();
-                JSONObject cachedPlayer = cachedIterator.next();
                 if (authorUuid.toString().equals((String) playerObj.get("uuid"))) {
                     JSONArray claims = (JSONArray) playerObj.get("claims");
-                    JSONArray cachedClaims = (JSONArray) cachedPlayer.get("claims");
                     // JSON claims iterator
                     Iterator<JSONObject> claimsIterator = claims.iterator();
-                    // Cached players claims iterator
-                    Iterator<JSONObject> cachedClaimsIterator = cachedClaims.iterator();
                     while(claimsIterator.hasNext()) {
                         JSONObject claim = claimsIterator.next();
-                        JSONObject cachedClaim = cachedClaimsIterator.next();
                         boolean isInRadius = Utilities.checkIfInRadius(loc, (String)claim.get("pos"),Integer.parseInt((String)claim.get("radius")));
                         if(isInRadius) {
                             // JSON
                             JSONArray playersClaim = (JSONArray) claim.get("players");
                             if(playersClaim.contains(playerUuid.toString())) {
                                 playersClaim.remove(playerUuid.toString());
-                            }
-                            // Cache
-                            JSONArray cachedPlayersClaim = (JSONArray) cachedClaim.get("players");
-                            if(cachedPlayersClaim.contains(playerUuid.toString())) {
-                                cachedPlayersClaim.remove(playerUuid.toString());
                             }
                             LPlayer.findByUUID(authorUuid).getClaim(loc).removePlayer(playerUuid);
 
@@ -203,25 +166,9 @@ public class ClaimUtils {
     }
 
     public static boolean checkClaim(UUID uuid, Location location) {
-        // first check in lplayer collection (connected players), for performance reasons
-        /* for(LPlayer player : LPlayer.getPlayers()) {
+        for(LPlayer player : LPlayer.getPlayers()) {
             for (Claim claim : player.getClaims()) {
                 if(claim.inRadius(location) && !(player.getUuid().equals(uuid)) && !(claim.getAuthorizedPlayers().contains(uuid))) {
-                    return false;
-                }
-            }
-        }*/
-        // if not returned, check in cachedPlayersData, that includes offline players
-        JSONArray cachedPlayersData = (JSONArray) Main.cachedPlayersData;
-        for(int i = 0; i < cachedPlayersData.size(); i++){
-            JSONObject playerObj = (JSONObject) cachedPlayersData.get(i);
-            UUID playerUuid = UUID.fromString(playerObj.get("uuid").toString());
-            JSONArray claims = (JSONArray) playerObj.get("claims");
-            for(int n = 0; n < claims.size(); n++) {
-                JSONObject claim = (JSONObject) claims.get(n);
-                JSONArray claimAuthorizedPlayers = (JSONArray) claim.get("players");
-                boolean isInRadius = Utilities.checkIfInRadius(location, (String)claim.get("pos"), Integer.parseInt((String)claim.get("radius")));
-                if(isInRadius && !(playerUuid.equals(uuid)) && !(claimAuthorizedPlayers.contains(uuid.toString()))) {
                     return false;
                 }
             }
@@ -231,7 +178,16 @@ public class ClaimUtils {
     
 
     static public OfflinePlayer checkPlayerClaim(UUID uuid, Location location) {
-        JSONParser jsonParser = new JSONParser();
+        for(LPlayer player : LPlayer.getPlayers()) {
+            for (Claim claim : player.getClaims()) {
+                if(claim.inRadius(location)) {
+                    return Bukkit.getOfflinePlayer(player.getUuid());
+                }
+            }
+        }
+        return null;
+
+        /*JSONParser jsonParser = new JSONParser();
         JSONArray cachedPlayersData = (JSONArray) Main.cachedPlayersData;
         for(int i = 0; i < cachedPlayersData.size(); i++){
             JSONObject playerObj = (JSONObject) cachedPlayersData.get(i);
@@ -245,8 +201,6 @@ public class ClaimUtils {
                     return Bukkit.getOfflinePlayer(claimPlayerUUID);
                 }
             }
-        }
-        //System.out.println(check);
-        return null;
+        }*/
     } 
 }

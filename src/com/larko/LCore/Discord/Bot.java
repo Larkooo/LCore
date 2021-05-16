@@ -20,10 +20,12 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import javax.security.auth.login.LoginException;
+import java.awt.*;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class Bot {
+    public static Color primaryColor = new Color(236, 115, 248);
     private static JDA bot;
     private String prefix;
 
@@ -61,6 +63,13 @@ public class Bot {
                     new CommandBuilder("unlink", new Unlink())
                             .setAlias("disconnect")
                             .setDescription("Disconnect the minecraft LCore account linked to your discord")
+                            .build()
+            );
+
+            commandHandler.addCommand(
+                    new CommandBuilder("me", new Me())
+                            .setAlias("profile")
+                            .setDescription("Get information about your minecraft LCore account")
                             .build()
             );
 

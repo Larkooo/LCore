@@ -26,7 +26,7 @@ public class Exec implements CommandListener {
         String command = args[0];
         String userId = member.getId();
 
-        LPlayer lplayer = AuthUtils.findPlayerWithDiscord(userId);
+        LPlayer lplayer = LPlayer.findByDiscord(userId);
         if (lplayer == null) {
             message.reply("You haven't linked your minecraft LCore account yet, please link it by running `" + Utilities.config.getString("bot_prefix") + "link`").queue();
             return;
@@ -36,8 +36,12 @@ public class Exec implements CommandListener {
             message.reply("You need to be **OP** to use this command").queue();
             return;
         }
-        boolean commandRunned = Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
-        message.reply(commandRunned ? "Executed command `" + command + "`" : "Could not execute given command").queue();
+        long start = System.currentTimeMillis();
+        Message reloadMessage = message.reply("Reloading server...").complete();
+        Bukkit.getScheduler().scheduleSyncDelayedTask(Bukkit.getPluginManager().getPlugin("LCore"), () ->
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command));
+        long finish = System.currentTimeMillis();
+        message.reply("Executed command `" + command + "` in `" + (finish - start) + "ms`").queue();
     }
 }
 
