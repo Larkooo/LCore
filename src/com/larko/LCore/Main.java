@@ -3,7 +3,9 @@ package com.larko.LCore;
 import com.larko.LCore.Auth.AuthModule;
 import com.larko.LCore.Discord.Bot;
 import com.larko.LCore.Economy.MoneyModule;
+import com.larko.LCore.Economy.ShopModule;
 import com.larko.LCore.Structures.LPlayer;
+import com.larko.LCore.Structures.Shop;
 import com.larko.LCore.World.ClaimModule;
 import com.larko.LCore.World.HomeModule;
 import net.dv8tion.jda.api.JDA;
@@ -48,6 +50,9 @@ public class Main extends JavaPlugin {
                 JSONObject player = (JSONObject) players.get(i);
                 LPlayer.fromJSON(player);
             }
+
+            JSONObject shop = (JSONObject) jsonParser.parse(new FileReader(new File(Utilities.dataFolder, "shop.json")));
+            Shop.fromJSON(shop);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -59,6 +64,7 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new AuthModule(), this);
         getServer().getPluginManager().registerEvents(new ClaimModule(), this);
         getServer().getPluginManager().registerEvents(new HomeModule(), this);
+        getServer().getPluginManager().registerEvents(new ShopModule(), this);
         // Home
         getCommand("sethome").setExecutor(new HomeModule());
         getCommand("home").setExecutor(new HomeModule());
@@ -75,6 +81,9 @@ public class Main extends JavaPlugin {
         getCommand("lcoins").setExecutor(new MoneyModule());
         getCommand("transfer").setExecutor(new MoneyModule());
         getCommand("setlcoins").setExecutor(new MoneyModule());
+
+        getCommand("shop").setExecutor(new ShopModule());
+        getCommand("sell").setExecutor(new ShopModule());
     }
 
     @Override
