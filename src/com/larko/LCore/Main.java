@@ -49,6 +49,7 @@ public class Main extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new AuthModule(), this);
         getServer().getPluginManager().registerEvents(new ClaimModule(), this);
+        getServer().getPluginManager().registerEvents(new HomeModule(), this);
         // Home
         getCommand("sethome").setExecutor(new HomeModule());
         getCommand("home").setExecutor(new HomeModule());

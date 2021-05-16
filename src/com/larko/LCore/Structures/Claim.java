@@ -5,14 +5,17 @@ import org.bukkit.Location;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.UUID;
 
 public class Claim {
     private Position position;
     private int radius;
-    private JSONArray authorizedPlayers;
+    private ArrayList<UUID> authorizedPlayers;
 
-    public Claim(Position position, int radius, JSONArray authorizedPlayers) {
+    public Claim(Position position, int radius, ArrayList<UUID> authorizedPlayers) {
         this.position = position;
         this.radius = radius;
         this.authorizedPlayers = authorizedPlayers;
@@ -62,19 +65,26 @@ public class Claim {
             this.authorizedPlayers.remove(uuid);
     }
 
-    public JSONArray getAuthorizedPlayers()
+    public ArrayList<UUID> getAuthorizedPlayers()
     {
         return this.authorizedPlayers;
     }
 
     public static Claim fromJSON(JSONObject jsonObject) {
+        // json array to arraylist with uuids
+        JSONArray authorizedPlayers = (JSONArray) jsonObject.get("players");
+        ArrayList<UUID> converted = new ArrayList<>();
+        for (int i = 0; i < authorizedPlayers.size(); i++) {
+            String uuid = (String) authorizedPlayers.get(i);
+            converted.add(UUID.fromString(uuid));
+        }
         Claim claim = new Claim(
                 Position.fromStrings(
                         jsonObject.get("pos").toString(),
                         jsonObject.get("dimension").toString()
                 ),
                 Integer.parseInt(jsonObject.get("radius").toString()),
-                (JSONArray)jsonObject.get("players")
+                converted
         );
     return claim;
     }

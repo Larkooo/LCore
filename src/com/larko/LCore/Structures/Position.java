@@ -37,6 +37,27 @@ public class Position {
         return new Position(x, y, z, world);
     }
 
+    public static Position fromString(String string) {
+        String[] splittedString = string.split("\\s+");
+        Double x = Double.parseDouble(splittedString[0]);
+        Double y = Double.parseDouble(splittedString[1]);
+        Double z = Double.parseDouble(splittedString[2]);
+        String worldStr = splittedString[3];
+        org.bukkit.World.Environment world;
+        switch(worldStr) {
+            case "NETHER":
+                world = org.bukkit.World.Environment.NETHER;
+                break;
+            case "THE_END":
+                world = World.Environment.THE_END;
+                break;
+            default:
+                world = org.bukkit.World.Environment.NORMAL;
+                break;
+        }
+        return new Position(x, y, z, world);
+    }
+
     public double getX() {
         return this.x;
     }

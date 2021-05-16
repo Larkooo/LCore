@@ -1,32 +1,40 @@
 package com.larko.LCore.World;
 
+import com.larko.LCore.Structures.Claim;
 import com.larko.LCore.Structures.Home;
 import com.larko.LCore.Structures.LPlayer;
+import com.larko.LCore.Structures.Position;
 import net.minecraft.server.v1_16_R3.DimensionManager;
 import net.minecraft.server.v1_16_R3.IRegistryCustom;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import com.larko.LCore.Utils.HomeUtils;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
-public class HomeModule implements CommandExecutor {
+public class HomeModule implements CommandExecutor, Listener {
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
+        if(!(commandSender instanceof Player)) return false;
+        Player player = (Player) commandSender;
+
         if(label.equalsIgnoreCase("sethome")){
             if((args.length < 1)) return false;
             String homeName = args[0];
-            if(!(commandSender instanceof Player)) return false;
-            Player player = (Player) commandSender;
             LPlayer lPlayer = LPlayer.findByUUID(player.getUniqueId());
 
             if(!(player.getWorld().getEnvironment().equals(World.Environment.NORMAL))) {
@@ -50,8 +58,6 @@ public class HomeModule implements CommandExecutor {
         } else if(label.equalsIgnoreCase("home")) {
             if((args.length < 1)) return false;
             String homeName = args[0];
-            if(!(commandSender instanceof Player)) return false;
-            Player player = (Player) commandSender;
             LPlayer lPlayer = LPlayer.findByUUID(player.getUniqueId());
             Home home = lPlayer.getHome(homeName);
             if(home != null) {
@@ -64,8 +70,6 @@ public class HomeModule implements CommandExecutor {
         } else if(label.equalsIgnoreCase("delhome")) {
             if((args.length < 1)) return false;
             String homeName = args[0];
-            if(!(commandSender instanceof Player)) return false;
-            Player player = (Player) commandSender;
             LPlayer lPlayer = LPlayer.findByUUID(player.getUniqueId());
             boolean deletedHome = lPlayer.removeHome(homeName);
             if(deletedHome){
@@ -76,22 +80,32 @@ public class HomeModule implements CommandExecutor {
                 return false;
             }
         } else if(label.equalsIgnoreCase("homes")) {
-            if(!(commandSender instanceof Player)) return false;
-            Player player = (Player) commandSender;
             LPlayer lPlayer = LPlayer.findByUUID(player.getUniqueId());
-            ArrayList<Home> homes = lPlayer.getHomes();
-            if(homes.size() == 0) {
-                player.sendMessage("You don't have any homes");
-                return false;
-            } else {
-                String homesString = "";
-                for(Home home : homes) {
-                    homesString += home.getName() + " ";
-                }
-                player.sendMessage("Homes : " + homes.size() + "\n" + homesString);
-                return true;
+            Inventory homesInventory = Bukkit.createInventory(null, 18, "Homes");
+            for (Home home : lPlayer.getHomes()) {
+                // random item
+                List<Material> filteredMaterials = Arrays.stream(Material.values()).filter(material -> material.isItem()).collect(Collectors.toList());
+                ItemStack homeItem = new ItemStack(filteredMaterials.get(new Random().nextInt(filteredMaterials.size())));
+                ItemMeta itemMeta = homeItem.getItemMeta();
+                itemMeta.setDisplayName(ChatColor.BLUE + home.getName());
+                itemMeta.setLore(Arrays.asList(home.getPosition().toString()));
+                homeItem.setItemMeta(itemMeta);
+                homesInventory.addItem(homeItem);
             }
+            InventoryView claimsView = player.openInventory(homesInventory);
         }
         return false;
+    }
+
+    /*
+       Cancel click event if on homes inventory
+     */
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (event.getClickedInventory() == null) return;
+        if (!event.getView().getTitle().equals("Homes")) return;
+        event.setCancelled(true);
+        HumanEntity player = event.getWhoClicked();
+        player.teleport(Position.fromString(event.getCurrentItem().getItemMeta().getLore().get(0)).toLocation());
     }
 }

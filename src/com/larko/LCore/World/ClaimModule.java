@@ -14,12 +14,18 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.larko.LCore.Utils.ClaimUtils;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 public class ClaimModule implements CommandExecutor, Listener {
 
@@ -27,9 +33,9 @@ public class ClaimModule implements CommandExecutor, Listener {
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
+        if(!(commandSender instanceof Player)) return false;
+        Player player = (Player) commandSender;
         if(label.equalsIgnoreCase("claim") || label.equalsIgnoreCase("setclaim")) {
-            if(!(commandSender instanceof Player)) return false;
-            Player player = (Player) commandSender;
             LPlayer lPlayer = LPlayer.findByUUID(player.getUniqueId());
             if(args.length < 1) {
                 player.sendMessage(ChatColor.RED + "Please provide a radius");
@@ -63,8 +69,6 @@ public class ClaimModule implements CommandExecutor, Listener {
                 return false;
             }
         } else if(label.equalsIgnoreCase("unclaim")) {
-            if(!(commandSender instanceof Player)) return false;
-            Player player = (Player) commandSender;
             LPlayer lPlayer = LPlayer.findByUUID(player.getUniqueId());
             boolean unclaimed = lPlayer.removeClaim(player.getLocation());
             if(unclaimed) {
@@ -75,8 +79,6 @@ public class ClaimModule implements CommandExecutor, Listener {
                 return false;
             }
         } else if(label.equalsIgnoreCase("addtoclaim")) {
-            if(!(commandSender instanceof Player)) return false;
-            Player player = (Player) commandSender;
             if(args.length < 1) {
                 player.sendMessage(ChatColor.RED + "Player name missing");
                 return false;
@@ -96,8 +98,6 @@ public class ClaimModule implements CommandExecutor, Listener {
                 return true;
             }
         } else if(label.equalsIgnoreCase("removefromclaim")) {
-            if(!(commandSender instanceof Player)) return false;
-            Player player = (Player) commandSender;
             if(args.length == 0) {
                 player.sendMessage(ChatColor.RED + "Player name missing");
                 return false;
@@ -117,9 +117,21 @@ public class ClaimModule implements CommandExecutor, Listener {
                 return true;
             }
         } else if(label.equalsIgnoreCase("claims")) {
-            if(!(commandSender instanceof Player)) return false;
-            Player player = (Player) commandSender;
-            ArrayList<Claim> claims = LPlayer.findByUUID(player.getUniqueId()).getClaims();
+            LPlayer lPlayer = LPlayer.findByUUID(player.getUniqueId());
+            // minimum inv size is 9
+            Inventory claimsInventory = Bukkit.createInventory(null, 9, "Claims");
+            for (Claim claim : lPlayer.getClaims()) {
+                // random block
+                List<Material> filteredMaterials = Arrays.stream(Material.values()).filter(material -> material.isBlock()).collect(Collectors.toList());
+                ItemStack claimItem = new ItemStack(filteredMaterials.get(new Random().nextInt(filteredMaterials.size())));
+                ItemMeta itemMeta = claimItem.getItemMeta();
+                itemMeta.setDisplayName(ChatColor.BLUE + claim.getPosition().toString());
+                itemMeta.setLore(claim.getAuthorizedPlayers().stream().map(uuid -> Bukkit.getOfflinePlayer(uuid).getName()).collect(Collectors.toList()));
+                claimItem.setItemMeta(itemMeta);
+                claimsInventory.addItem(claimItem);
+            }
+            InventoryView claimsView = player.openInventory(claimsInventory);
+            /*ArrayList<Claim> claims = LPlayer.findByUUID(player.getUniqueId()).getClaims();
             if(claims.size() > 0) {
                 String claimsString = "";
                 for(Claim claim : claims) {
@@ -129,7 +141,7 @@ public class ClaimModule implements CommandExecutor, Listener {
                 player.sendMessage("Claims : " + claims.size() + "\n" + claimsString);
             } else {
                 player.sendMessage("You don't have any claims");
-            }
+            }*/
         }
         return false;
     }
@@ -188,5 +200,15 @@ public class ClaimModule implements CommandExecutor, Listener {
             // Cancelling explosion only if owner is not found near the entity that exploded
             event.setCancelled(!foundClaimOwnerInRadius);
         }
+    }
+
+    /*
+        Claims inventory events
+     */
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (event.getClickedInventory() == null) return;
+        if (!event.getView().getTitle().equals("Claims")) return;
+        event.setCancelled(true);
     }
 }
