@@ -7,16 +7,21 @@ import com.larko.LCore.World.ClaimModule;
 import com.larko.LCore.World.HomeModule;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Activity;
+import net.minecraft.server.v1_16_R3.MinecraftServer;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import com.larko.LCore.Utils.Utilities;
+import org.json.simple.parser.ParseException;
 
 import java.io.File;
 import java.io.FileReader;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
 
 public class Main extends JavaPlugin {
     //public static JSONArray cachedPlayersData;
@@ -31,8 +36,6 @@ public class Main extends JavaPlugin {
         Utilities.config.options().copyDefaults(true);
         saveConfig();
 
-        new Bot();
-
         // Caching players
         JSONParser jsonParser = new JSONParser();
 
@@ -46,6 +49,10 @@ public class Main extends JavaPlugin {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        new Bot();
+
+        Utilities.runScienceTask();
 
         getServer().getPluginManager().registerEvents(new AuthModule(), this);
         getServer().getPluginManager().registerEvents(new ClaimModule(), this);

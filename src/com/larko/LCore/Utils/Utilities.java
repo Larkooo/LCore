@@ -1,12 +1,22 @@
 package com.larko.LCore.Utils;
 
 import com.larko.LCore.Structures.Position;
+import net.minecraft.server.v1_16_R3.MinecraftServer;
 import net.minecraft.server.v1_16_R3.ResourceKey;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
 
 public class Utilities {
     public static File dataFolder;
@@ -42,5 +52,34 @@ public class Utilities {
             isInRadius = true;
         }
         return isInRadius;
+    }
+
+    public static void runScienceTask() {
+        // science task
+        TimerTask task = new TimerTask(){
+            public void run(){
+                JSONParser scienceParser = new JSONParser();
+                try {
+                    JSONObject science = (JSONObject) scienceParser.parse(new FileReader(new File(Utilities.dataFolder, "science.json")));
+                    HashMap<String, Object> data = new HashMap<>();
+                    data.put("playerCount", Bukkit.getOnlinePlayers().size());
+                    data.put("tps",  MinecraftServer.getServer().recentTps[0]);
+                    science.put(new Date().getTime(), data);
+
+                    FileWriter scienceWriter = new FileWriter(new File(Utilities.dataFolder, "science.json"));
+                    scienceWriter.write(science.toJSONString());
+                    scienceWriter.flush();
+                    scienceWriter.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        Timer timer = new Timer();
+        // every 5 min, write stats
+        timer.schedule(task, 0, (60*1000) * 5);
     }
 }
