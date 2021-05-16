@@ -3,11 +3,13 @@ package com.larko.LCore.Structures;
 import com.larko.LCore.Main;
 import com.larko.LCore.Utils.AuthUtils;
 import com.larko.LCore.Utils.ClaimUtils;
+import com.larko.LCore.Utils.EconomyUtils;
 import com.larko.LCore.Utils.HomeUtils;
 import javafx.beans.DefaultProperty;
 import org.bukkit.Location;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.mindrot.jbcrypt.BCrypt;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -21,15 +23,17 @@ public class LPlayer {
     private String hashedPassword;
     private ArrayList<Home> homes;
     private ArrayList<Claim> claims;
+    private double lCoins;
     private String linkedDiscordId;
     private boolean connected;
     //private org.bukkit.entity.Player entity;
 
-    public LPlayer(UUID uuid, String hashedPassword, ArrayList<Home> homes, ArrayList<Claim> claims, @Nullable String linkedDiscordId /*, org.bukkit.entity.Player player */) {
+    public LPlayer(UUID uuid, String hashedPassword, ArrayList<Home> homes, ArrayList<Claim> claims, double lCoins, @Nullable String linkedDiscordId /*, org.bukkit.entity.Player player */) {
         this.uuid = uuid;
         this.hashedPassword = hashedPassword;
         this.homes = homes;
         this.claims = claims;
+        this.lCoins = lCoins;
         this.linkedDiscordId = linkedDiscordId;
         this.connected = false;
         //this.entity = player;
@@ -40,8 +44,21 @@ public class LPlayer {
         return this.uuid;
     }
 
+    public boolean login(String password) {
+        if (!BCrypt.checkpw(password, hashedPassword)) return false;
+        connected = true;
+        return true;
+    }
+
     public boolean isConnected() { return this.connected; }
     public void setConnected(boolean connected) { this.connected = connected; }
+
+    public double getLCoins() { return this.lCoins; }
+    public boolean setLCoins(double lCoins) {
+        if (!EconomyUtils.setLCoinsDB(uuid, lCoins)) return false;
+        this.lCoins = lCoins;
+        return true;
+    }
 
     public String getHashedPassword() { return this.hashedPassword; }
 
@@ -120,7 +137,21 @@ public class LPlayer {
     }
 
     public boolean setLinkedDiscordId(String discordId) {
-        return AuthUtils.linkDiscordAccount(uuid, discordId);
+        if (AuthUtils.linkDiscordAccount(uuid, discordId))
+        {
+            linkedDiscordId = discordId;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean unlinkDiscord() {
+        if (linkedDiscordId == null) return true;
+        if (AuthUtils.unlinkDiscordAccount(uuid)) {
+            linkedDiscordId = null;
+            return true;
+        }
+        return false;
     }
 
     public static LPlayer fromJSON(JSONObject jsonObject) {
@@ -143,7 +174,7 @@ public class LPlayer {
             homes.add(new Home(key, Position.fromStrings(homesJson.get(key).toString(), "overworld")));
         }
 
-        LPlayer player = new LPlayer(UUID.fromString(jsonObject.get("uuid").toString()), jsonObject.get("password").toString(), homes, claims, jsonObject.containsKey("discordId") ? jsonObject.get("discordId").toString() : null);
+        LPlayer player = new LPlayer(UUID.fromString(jsonObject.get("uuid").toString()), jsonObject.get("password").toString(), homes, claims, jsonObject.containsKey("lCoins") ? (double) jsonObject.get("lCoins") : 0.0, jsonObject.containsKey("discordId") ? jsonObject.get("discordId").toString() : null);
         return player;
     }
 

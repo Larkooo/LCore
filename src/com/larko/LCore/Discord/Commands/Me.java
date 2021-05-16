@@ -32,6 +32,7 @@ public class Me implements CommandListener {
         EmbedBuilder embedBuilder = new EmbedBuilder();
         embedBuilder.setAuthor(playerName, "https://namemc.com/" + playerName, "https://mc-heads.net/head/" + playerName);
         embedBuilder.setTitle("Account");
+        embedBuilder.setDescription("`" + lplayer.getLCoins() + "` LCoins");
         embedBuilder.setColor(Bot.primaryColor);
 
         // claims
@@ -44,7 +45,7 @@ public class Me implements CommandListener {
         // homes
         String homesStringBuffer = "";
         for (Home home : lplayer.getHomes()) {
-            homesStringBuffer += home.getName() + " `" + home.getPosition().toString() + "`\n";
+            homesStringBuffer += home.getName() + "`\n";
         }
         embedBuilder.addField("Homes", homesStringBuffer, true);
 

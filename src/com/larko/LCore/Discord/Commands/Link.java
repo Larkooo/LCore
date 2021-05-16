@@ -55,8 +55,12 @@ public class Link implements CommandListener {
                         privateChannel.sendMessage("Timeout. You can retry linking your minecraft LCore account by running the command again.").queue();
                     }
                     if (BCrypt.checkpw(latestMessage.getContentRaw(), player.getHashedPassword())) {
-                        latestMessage.reply("Correct password. I linked your minecraft LCore account to your discord").queue();
-                        AuthUtils.linkDiscordAccount(offlinePlayer.getUniqueId(), user.getId());
+                        if (player.setLinkedDiscordId(user.getId())) {
+                            latestMessage.reply("Correct password. I linked your minecraft LCore account to your discord").queue();
+                            return;
+                        }
+                        latestMessage.reply("An error occured, could not link your account").queue();
+
                     } else {
                         latestMessage.reply("Bad password. You can retry linking your minecraft LCore account by running the command again.").queue();
                     }

@@ -45,8 +45,17 @@ public class AuthModule implements Listener {
     public void onPlayerMove(PlayerMoveEvent event) {
         Location before = event.getFrom();
         Player player = event.getPlayer();
-        if(!LPlayer.findByUUID(player.getUniqueId()).isConnected()) {
-            player.teleport(before);
+
+        if (LPlayer.findByUUID(player.getUniqueId()).isConnected()) return;
+
+        player.teleport(before);
+
+        boolean hasAlreadyAccount = isPlayerRegistered(player.getUniqueId());
+
+        if(hasAlreadyAccount) {
+            player.sendTitle(ChatColor.RED + "Login", ChatColor.GRAY + "Please type your password in the chat", 1,100,3);
+        } else {
+            player.sendTitle(ChatColor.RED +"Create an account",  ChatColor.GRAY + "Please choose a password and type it in the chat", 1,100,3);
         }
     }
 
@@ -59,11 +68,11 @@ public class AuthModule implements Listener {
         Player player = event.getPlayer();
         if(!awaitingLoginPlayers.containsKey(player.getUniqueId())) return;
         AuthState method = (AuthState) awaitingLoginPlayers.get(player.getUniqueId());
-        String message = event.getMessage();
+        String password = event.getMessage();
         // Delete message
         event.setCancelled(true);
         if(method == AuthState.AWAITING_REGISTER) {
-            boolean registered = registerPlayer(player.getUniqueId(), message);
+            boolean registered = registerPlayer(player.getUniqueId(), password);
             if(!registered) {
                 player.sendMessage(ChatColor.RED + "An error occurred. Please try registering again.");
                 return;
@@ -71,13 +80,12 @@ public class AuthModule implements Listener {
             awaitingLoginPlayers.replace(player.getUniqueId(), AuthState.AWAITING_LOGIN);
             player.sendMessage("Successfully registered. Please type your password again to proceed.");
         } else {
-            if(loginPlayer(player.getUniqueId(), message) != null) {
+            if(LPlayer.findByUUID(player.getUniqueId()).login(password)) {
                 /*
                 If player logged in, remove him from awaiting login list
                  */
                 awaitingLoginPlayers.remove(player.getUniqueId());
                 player.sendMessage(ChatColor.GREEN + "Successfully logged in.");
-                System.out.println(LPlayer.getPlayers().size());
                 // Remove effects / attributes
                 Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("LCore"), () -> {
                     player.removePotionEffect(PotionEffectType.BLINDNESS);
@@ -99,8 +107,16 @@ public class AuthModule implements Listener {
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event){
         Player player = event.getPlayer();
-        if(!LPlayer.findByUUID(player.getUniqueId()).isConnected()) {
-            event.setCancelled(true);
+        if (LPlayer.findByUUID(player.getUniqueId()).isConnected()) return;
+
+        event.setCancelled(true);
+
+        boolean hasAlreadyAccount = isPlayerRegistered(player.getUniqueId());
+
+        if(hasAlreadyAccount) {
+            player.sendTitle(ChatColor.RED + "Login", ChatColor.GRAY + "Please type your password in the chat", 1,100,3);
+        } else {
+            player.sendTitle(ChatColor.RED +"Create an account",  ChatColor.GRAY + "Please choose a password and type it in the chat", 1,100,3);
         }
     }
 

@@ -107,5 +107,6 @@ public class HomeModule implements CommandExecutor, Listener {
         event.setCancelled(true);
         HumanEntity player = event.getWhoClicked();
         player.teleport(Position.fromString(event.getCurrentItem().getItemMeta().getLore().get(0)).toLocation());
+        Bukkit.getPlayer(player.getUniqueId()).playSound(player.getLocation(), Sound.BLOCK_STONE_BUTTON_CLICK_ON, 50, 5);
     }
 }

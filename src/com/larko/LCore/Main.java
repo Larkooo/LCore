@@ -2,6 +2,7 @@ package com.larko.LCore;
 
 import com.larko.LCore.Auth.AuthModule;
 import com.larko.LCore.Discord.Bot;
+import com.larko.LCore.Economy.MoneyModule;
 import com.larko.LCore.Structures.LPlayer;
 import com.larko.LCore.World.ClaimModule;
 import com.larko.LCore.World.HomeModule;
@@ -25,6 +26,7 @@ import java.util.*;
 
 public class Main extends JavaPlugin {
     //public static JSONArray cachedPlayersData;
+    public static Timer scienceTimer;
     @Override
     public void onEnable() {
         Utilities.dataFolder = getDataFolder();
@@ -69,11 +71,19 @@ public class Main extends JavaPlugin {
         getCommand("claims").setExecutor(new ClaimModule());
         getCommand("addtoclaim").setExecutor(new ClaimModule());
         getCommand("removefromclaim").setExecutor(new ClaimModule());
+
+        getCommand("lcoins").setExecutor(new MoneyModule());
+        getCommand("transfer").setExecutor(new MoneyModule());
+        getCommand("setlcoins").setExecutor(new MoneyModule());
     }
 
     @Override
     public void onDisable() {
+        scienceTimer.cancel();
         JDA bot = Bot.getInstance();
-        if (bot != null) bot.shutdownNow();
+        if (bot != null) {
+            Bot.activityUpdateTimer.cancel();
+            bot.shutdownNow();
+        };
     }
 }

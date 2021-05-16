@@ -17,7 +17,7 @@ public class Unlink implements CommandListener {
             message.reply("No minecraft LCore account linked to your account found").queue();
             return;
         }
-        if (AuthUtils.unlinkDiscordAccount(lPlayer.getUuid())) {
+        if (lPlayer.unlinkDiscord()) {
             message.reply("Your minecraft LCore account has been disconnected from this discord account").queue();
         } else {
             message.reply("Could not disconnect LCore account").queue();

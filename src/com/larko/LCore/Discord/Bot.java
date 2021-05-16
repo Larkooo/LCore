@@ -26,6 +26,7 @@ import java.util.TimerTask;
 
 public class Bot {
     public static Color primaryColor = new Color(236, 115, 248);
+    public static Timer activityUpdateTimer;
     private static JDA bot;
     private String prefix;
 
@@ -115,10 +116,10 @@ public class Bot {
                     }
                 };
 
-                Timer timer = new Timer();
+                activityUpdateTimer = new Timer();
                 // The delay period is calculated in milliseconds iirc
                 // refresh every 15 seconds (discord ratelimit)
-                timer.schedule(task, 0, 15*1000);
+                activityUpdateTimer.schedule(task, 0, 15*1000);
             }
         } catch (LoginException e) {
             e.printStackTrace();

@@ -36,11 +36,13 @@ public class AuthUtils {
             player.sendTitle(ChatColor.RED +"Create an account",  ChatColor.GRAY + "Please choose a password and type it in the chat", 1,100,3);
             AuthModule.awaitingLoginPlayers.put(player.getUniqueId(), AuthState.AWAITING_REGISTER);
         }
-        // Give the players some attributes / effects while he's not logged in.
-        player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 100000, 100, true, false, false));
-        player.setCanPickupItems(false);
-        // Make him invulnerable to prevent other players from killing him while logging him
-        player.setInvulnerable(true);
+        Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("LCore"), () -> {
+            // Give the players some attributes / effects while he's not logged in.
+            player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 100000, 100, true, false, false));
+            player.setCanPickupItems(false);
+            // Make him invulnerable to prevent other players from killing him while logging him
+            player.setInvulnerable(true);
+        });
     }
 
     static public boolean isPlayerRegistered(UUID uuid) {
@@ -56,6 +58,7 @@ public class AuthUtils {
 
             JSONObject player = new JSONObject();
             player.put("uuid", uuid.toString());
+            player.put("lCoins", 0.F);
             player.put("password", BCrypt.hashpw(password, BCrypt.gensalt()));
             //player.put("password", password);
             player.put("homes", new JSONObject());
@@ -80,21 +83,6 @@ public class AuthUtils {
         }
     }
 
-    static public LPlayer loginPlayer(UUID uuid, String password) {
-        LPlayer player = null;
-        for (LPlayer lplayer : LPlayer.getPlayers()) {
-            if(uuid.equals(lplayer.getUuid())) {
-                if(BCrypt.checkpw(password, lplayer.getHashedPassword()))
-                {
-                    player = LPlayer.findByUUID(uuid);
-                    player.setConnected(true);
-                }
-                break;
-            }
-        }
-        return player;
-    }
-
     static public boolean linkDiscordAccount(UUID uuid, String discordId) {
         JSONParser jsonParser = new JSONParser();
         try {
@@ -107,7 +95,6 @@ public class AuthUtils {
                 JSONObject playerObj = iterator.next();
                 if(uuid.toString().equals((String) playerObj.get("uuid"))) {
                     playerObj.put("discordId", discordId);
-                    LPlayer.findByUUID(uuid).setLinkedDiscordId(discordId);
 
                     FileWriter playersFile = new FileWriter(new File(Utilities.dataFolder, "players.json"));
                     playersFile.write(players.toJSONString());
@@ -136,8 +123,7 @@ public class AuthUtils {
             while (iterator.hasNext()){
                 JSONObject playerObj = iterator.next();
                 if(uuid.toString().equals((String) playerObj.get("uuid"))) {
-                    playerObj.remove("discordId");
-                    LPlayer.findByUUID(uuid).setLinkedDiscordId(null);
+                    playerObj.put("discordId", null);
 
                     FileWriter playersFile = new FileWriter(new File(Utilities.dataFolder, "players.json"));
                     playersFile.write(players.toJSONString());

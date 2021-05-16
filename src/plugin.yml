@@ -12,3 +12,6 @@ commands:
   claims:
   addtoclaim:
   removefromclaim:
+  lcoins:
+  transfer:
+  setlcoins:

@@ -9,6 +9,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -35,7 +36,7 @@ public class ClaimModule implements CommandExecutor, Listener {
     public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
         if(!(commandSender instanceof Player)) return false;
         Player player = (Player) commandSender;
-        if(label.equalsIgnoreCase("claim") || label.equalsIgnoreCase("setclaim")) {
+        if(label.equalsIgnoreCase("claim")) {
             LPlayer lPlayer = LPlayer.findByUUID(player.getUniqueId());
             if(args.length < 1) {
                 player.sendMessage(ChatColor.RED + "Please provide a radius");
@@ -209,6 +210,8 @@ public class ClaimModule implements CommandExecutor, Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         if (event.getClickedInventory() == null) return;
         if (!event.getView().getTitle().equals("Claims")) return;
+        HumanEntity clickAuthor = event.getWhoClicked();
+        Bukkit.getPlayer(clickAuthor.getUniqueId()).playSound(clickAuthor.getLocation(), Sound.ENTITY_VILLAGER_NO, 50, 5);
         event.setCancelled(true);
     }
 }
