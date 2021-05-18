@@ -34,7 +34,7 @@ public class Reload implements CommandListener {
         long start = System.currentTimeMillis();
         Message reloadMessage = message.reply("Contacting server...").complete();
         Bukkit.getScheduler().scheduleSyncDelayedTask(Bukkit.getPluginManager().getPlugin("LCore"), () ->
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "reload"));
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "reload confirm"));
         long finish = System.currentTimeMillis();
         reloadMessage.editMessage("Issued reload command in `" + (finish - start) + "ms`. Server is currently reloading.").queue();
     }

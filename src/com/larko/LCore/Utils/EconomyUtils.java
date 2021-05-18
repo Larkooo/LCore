@@ -1,5 +1,7 @@
 package com.larko.LCore.Utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.larko.LCore.Structures.LPlayer;
 import org.bukkit.inventory.ItemStack;
 import org.json.simple.JSONArray;
@@ -48,7 +50,7 @@ public class EconomyUtils {
 
             JSONArray items = (JSONArray) shop.get("items");
 
-            JSONObject data = new JSONObject(item.serialize());
+            Map<String, Object> data = item.serialize();
             data.put("uuid", uuid.toString());
             data.put("price", price);
             data.put("vendor", vendorUuid.toString());
@@ -57,7 +59,7 @@ public class EconomyUtils {
             items.add(data);
 
             FileWriter shopWriter = new FileWriter(new File(Utilities.dataFolder, "shop.json"));
-            shopWriter.write(shop.toJSONString());
+            shopWriter.write((new Gson()).toJson(shop));
             shopWriter.flush();
             shopWriter.close();
 

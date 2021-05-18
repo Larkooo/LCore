@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="paper-patched_1.16.5">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/libs/paper-patched_1.16.5.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/libs/paper-patched_1.16.5.jar!/" />
+    </SOURCES>
+  </library>
+</component>

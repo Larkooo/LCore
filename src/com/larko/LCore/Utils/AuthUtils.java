@@ -15,6 +15,7 @@ import org.json.simple.parser.JSONParser;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.UUID;
 import com.larko.LCore.Main;
@@ -31,10 +32,18 @@ public class AuthUtils {
 
         if(hasAlreadyAccount) {
             player.sendTitle(ChatColor.RED + "Login", ChatColor.GRAY + "Please type your password in the chat", 1,100,3);
-            AuthModule.awaitingLoginPlayers.put(player.getUniqueId(), AuthState.AWAITING_LOGIN);
+            HashMap<String, Object> data = new HashMap<String, Object>(){{
+                put("authState", AuthState.AWAITING_LOGIN);
+                put("tries", 0);
+            }};
+            AuthModule.awaitingLoginPlayers.put(player.getUniqueId(), data);
         } else {
             player.sendTitle(ChatColor.RED +"Create an account",  ChatColor.GRAY + "Please choose a password and type it in the chat", 1,100,3);
-            AuthModule.awaitingLoginPlayers.put(player.getUniqueId(), AuthState.AWAITING_REGISTER);
+            HashMap<String, Object> data = new HashMap<String, Object>(){{
+                put("authState", AuthState.AWAITING_REGISTER);
+                put("tries", 0);
+            }};
+            AuthModule.awaitingLoginPlayers.put(player.getUniqueId(), data);
         }
         Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("LCore"), () -> {
             // Give the players some attributes / effects while he's not logged in.
@@ -55,12 +64,11 @@ public class AuthUtils {
             Object obj = jsonParser.parse(new FileReader(new File(Utilities.dataFolder, "players.json")));
 
             JSONArray players = (JSONArray) obj;
-
             JSONObject player = new JSONObject();
             player.put("uuid", uuid.toString());
-            player.put("lCoins", 0.F);
+            // double
+            player.put("lCoins", 5000.d);
             player.put("password", BCrypt.hashpw(password, BCrypt.gensalt()));
-            //player.put("password", password);
             player.put("homes", new JSONObject());
             player.put("claims", new JSONArray());
 

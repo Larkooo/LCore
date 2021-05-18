@@ -26,6 +26,7 @@ public class LPlayer {
     private double lCoins;
     private String linkedDiscordId;
     private boolean connected;
+    private boolean inClaim;
     //private org.bukkit.entity.Player entity;
 
     public LPlayer(UUID uuid, String hashedPassword, ArrayList<Home> homes, ArrayList<Claim> claims, double lCoins, @Nullable String linkedDiscordId /*, org.bukkit.entity.Player player */) {
@@ -59,6 +60,9 @@ public class LPlayer {
         this.lCoins = lCoins;
         return true;
     }
+    
+    public boolean isInClaim() { return inClaim; }
+    public void setInClaim(boolean inClaim) { this.inClaim = inClaim; }
 
     public String getHashedPassword() { return this.hashedPassword; }
 

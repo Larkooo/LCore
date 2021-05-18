@@ -4,6 +4,9 @@ import com.larko.LCore.Structures.Claim;
 import com.larko.LCore.Structures.LPlayer;
 import com.larko.LCore.Structures.Position;
 import com.larko.LCore.Utils.Utilities;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -30,7 +33,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 public class ClaimModule implements CommandExecutor, Listener {
 
-    static LinkedList inClaimPlayers = new LinkedList();
+    //static LinkedList inClaimPlayers = new LinkedList();
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
@@ -120,14 +123,14 @@ public class ClaimModule implements CommandExecutor, Listener {
         } else if(label.equalsIgnoreCase("claims")) {
             LPlayer lPlayer = LPlayer.findByUUID(player.getUniqueId());
             // minimum inv size is 9
-            Inventory claimsInventory = Bukkit.createInventory(null, 9, "Claims");
+            Inventory claimsInventory = Bukkit.createInventory(null, 9, Component.text("Claims"));
             for (Claim claim : lPlayer.getClaims()) {
                 // random block
                 List<Material> filteredMaterials = Arrays.stream(Material.values()).filter(material -> material.isBlock()).collect(Collectors.toList());
                 ItemStack claimItem = new ItemStack(filteredMaterials.get(new Random().nextInt(filteredMaterials.size())));
                 ItemMeta itemMeta = claimItem.getItemMeta();
-                itemMeta.setDisplayName(ChatColor.BLUE + claim.getPosition().toString());
-                itemMeta.setLore(claim.getAuthorizedPlayers().stream().map(uuid -> Bukkit.getOfflinePlayer(uuid).getName()).collect(Collectors.toList()));
+                itemMeta.displayName(Component.text(claim.getPosition().toString(), TextColor.color(52, 137, 235)));
+                itemMeta.lore(claim.getAuthorizedPlayers().stream().map(uuid -> Component.text(Bukkit.getOfflinePlayer(uuid).getName())).collect(Collectors.toList()));
                 claimItem.setItemMeta(itemMeta);
                 claimsInventory.addItem(claimItem);
             }
@@ -171,11 +174,16 @@ public class ClaimModule implements CommandExecutor, Listener {
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         OfflinePlayer claimOwner = ClaimUtils.checkPlayerClaim(player.getUniqueId(), player.getLocation());
-        if(claimOwner != null && !(inClaimPlayers.contains(player.getUniqueId()))) {
+        LPlayer lPlayer = LPlayer.findByUUID(player.getUniqueId());
+        // show titles only if player was in claim/not in claim
+        // was not in claim && is in claim actually = show title
+        // was in claim && is not in claim = show title
+        // that way we dont show the title when not needed
+        if(claimOwner != null && !lPlayer.isInClaim()) {
             player.sendTitle("", ChatColor.BLUE + "Entered " + claimOwner.getName() + "'s claim", 1, 50, 3);
-            inClaimPlayers.add(player.getUniqueId());
-        } else if(claimOwner == null && inClaimPlayers.contains(player.getUniqueId())) {
-            inClaimPlayers.remove(player.getUniqueId());
+            lPlayer.setInClaim(true);
+        } else if(claimOwner == null && lPlayer.isInClaim()) {
+            lPlayer.setInClaim(false);
             player.sendTitle("", ChatColor.GREEN + "Wilderness", 1, 50, 3);
         }
     }
@@ -209,7 +217,7 @@ public class ClaimModule implements CommandExecutor, Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (event.getClickedInventory() == null) return;
-        if (!event.getView().getTitle().equals("Claims")) return;
+        if (!(((TextComponent) event.getView().title()).content().equals("Claims"))) return;
         HumanEntity clickAuthor = event.getWhoClicked();
         Bukkit.getPlayer(clickAuthor.getUniqueId()).playSound(clickAuthor.getLocation(), Sound.ENTITY_VILLAGER_NO, 50, 5);
         event.setCancelled(true);

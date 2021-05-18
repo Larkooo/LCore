@@ -3,6 +3,12 @@ package com.larko.LCore.Economy;
 import com.larko.LCore.Structures.LPlayer;
 import com.larko.LCore.Structures.Shop;
 import com.larko.LCore.Structures.ShopItem;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.format.StyleBuilderApplicable;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -16,6 +22,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
@@ -34,17 +41,17 @@ public class ShopModule implements CommandExecutor, Listener {
                 player.sendMessage(ChatColor.DARK_GREEN + "The shop is currently " + ChatColor.BOLD + "closed");
                 return false;
             }
-            Inventory shopInventory = Bukkit.createInventory(null, 54, shop.getTitle());
+            Inventory shopInventory = Bukkit.createInventory(null, 54, Component.text(shop.getTitle()));
             shop.getItems().forEach(item -> {
                 ItemStack itemStack = item.getItem();
                 ItemMeta itemMeta = itemStack.getItemMeta();
 
-                ArrayList<String> lore = new ArrayList<>();
-                lore.add("Description : " + item.getDescription());
-                lore.add("Price : " + ChatColor.GOLD + "" + item.getPrice() + " LCoins");
-                lore.add("Vendor : " + Bukkit.getOfflinePlayer(item.getVendor().getUuid()).getName());
-                lore.add(item.getUuid().toString());
-                itemMeta.setLore(lore);
+                ArrayList<Component> lore = new ArrayList<>();
+                lore.add(Component.text("Description : ").append(Component.text(item.getDescription()).color(NamedTextColor.BLUE)));
+                lore.add(Component.text("Price : ").append(Component.text(item.getPrice() + " LCoins").color(NamedTextColor.GOLD)));
+                lore.add(Component.text("Vendor : " + Bukkit.getOfflinePlayer(item.getVendor().getUuid()).getName()));
+                lore.add(Component.text(item.getUuid().toString()));
+                itemMeta.lore(lore);
 
                 itemStack.setItemMeta(itemMeta);
 
@@ -97,7 +104,8 @@ public class ShopModule implements CommandExecutor, Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (event.getClickedInventory() == null) return;
-        if (!event.getView().getTitle().equals(Shop.getInstance().getTitle())) return;
+        Shop shop = Shop.getInstance();
+        if (!(((TextComponent) event.getView().title()).content().equals(shop.getTitle()))) return;
         event.setCancelled(true);
 
         HumanEntity clickAuthor = event.getWhoClicked();
@@ -105,18 +113,23 @@ public class ShopModule implements CommandExecutor, Listener {
         ItemStack itemStack = event.getCurrentItem();
         ItemMeta itemMeta = itemStack.getItemMeta();
 
-        double price = Double.parseDouble(itemMeta.getLore().get(1).replace("Price : §6", "").replace(" LCoins", "")) * itemStack.getAmount();
-        LPlayer vendor = LPlayer.findByUUID(Bukkit.getOfflinePlayer(itemMeta.getLore().get(2).replace("Vendor : ", "")).getUniqueId());
-        String uuid = itemMeta.getLore().get(3);
+        // The information about the item is contained in the lore of the item
+        // just some string manipulation to retrieve the price and vendor
+        double price = Double.parseDouble(((TextComponent)itemMeta.lore().get(1).children().get(0)).content().replace(" LCoins", ""));
+        LPlayer vendor = LPlayer.findByUUID(Bukkit.getOfflinePlayerIfCached(((TextComponent) itemMeta.lore().get(2)).content().replace("Vendor : ", "")).getUniqueId());
+        String uuid = ((TextComponent) itemMeta.lore().get(3)).content();
 
-        itemMeta.setLore(new ArrayList<>());
-        itemStack.setItemMeta(itemMeta);
+        // if client wants to buy only 1 item at a time, divide the price and reduce amount of item in inv
+        //if (event.isLeftClick()) {
+        //    price /= itemStack.getAmount();
+        //}
 
         if (price > lPlayer.getLCoins()) {
             clickAuthor.sendMessage(ChatColor.RED + "You do not have enough LCoins to buy this item");
             return;
         }
 
+        // just some checks to avoid loss of money
         if (lPlayer.setLCoins(lPlayer.getLCoins() - price)) {
             if(!vendor.setLCoins(vendor.getLCoins() + price)) {
                 clickAuthor.sendMessage(ChatColor.RED + "An error occurred, refunding you...");
@@ -124,10 +137,60 @@ public class ShopModule implements CommandExecutor, Listener {
                 return;
             }
 
-            if (!Shop.getInstance().removeItem(UUID.fromString(uuid))) return;
-            event.getInventory().removeItem(itemStack);
+            // if want to buy only 1 unity of item, reduce amount in shop
+            //if (event.isLeftClick()) {
+            //    itemStack.setAmount(itemStack.getAmount() - 1);
+            //    shop.findItemByUuid(UUID.fromString(uuid)).setItem(itemStack);
+            //    event.getInventory().setItem(event.getRawSlot(), itemStack);
+//
+            //    // now set to 1 so we give the player only 1 unity of the items
+            //    itemStack.setAmount(1);
+            //}
+            // if wants to buy everything, just remove the item directly from the shop
+            //else {
+                // we have to do this check because we are directly interacting with the json
+                if (!shop.removeItem(UUID.fromString(uuid))) {
+                    // if we cant seem to remove the item from the shop, refund the client and vendor
+                    clickAuthor.sendMessage(ChatColor.RED + "An error occurred, refunding in progress...");
+                    // give back money to client
+                    lPlayer.setLCoins(lPlayer.getLCoins() + price);
+                    // remove money from vendor
+                    vendor.setLCoins(vendor.getLCoins() - price);
+                    return;
+                };
+
+                event.getInventory().removeItem(itemStack);
+            //}
+
+            // The bill that the player will receive when he buys the item
+            // a written book
+            ItemStack billBook = new ItemStack(Material.WRITTEN_BOOK, 1);
+            BookMeta billMeta = (BookMeta) billBook.getItemMeta();
+            billMeta.setAuthor(shop.getTitle());
+            billMeta.title(Component.text("Purchase of " + itemStack.getType().name()).style(Style.style(TextDecoration.BOLD)));
+            billMeta.pages(
+                    Component.text().content("\n")
+                            .append(Component.text( "Purchase of " + itemStack.getType().name() + "\n\n")
+                                    .style(Style.style(TextDecoration.ITALIC, TextDecoration.BOLD)))
+                            .append(Component.text("Item : " + itemStack.getType().name() + "\n"))
+                            .append(Component.text("Amount : " + itemStack.getAmount() + "\n"))
+                            // vendor
+                            .append(itemMeta.lore().get(2))
+                            .append(Component.text("\nTotal Price : "))
+                            .append(Component.text(price + " LCoins").color(NamedTextColor.GOLD))
+                            .append(Component.text("\n\nShopItem Reference : "))
+                            .append(Component.text(uuid).color(NamedTextColor.LIGHT_PURPLE))
+                            .build()
+            );
+            billBook.setItemMeta(billMeta);
+
+            // Remove the shop lore, so the player doesnt receive the item with
+            // the tags that have been put for the shop
+            itemMeta.lore(new ArrayList<>());
+            itemStack.setItemMeta(itemMeta);
 
             clickAuthor.getInventory().addItem(itemStack);
+            clickAuthor.getInventory().addItem(billBook);
             clickAuthor.sendMessage(ChatColor.GREEN +
                     "You bought " +
                             ChatColor.BLUE +

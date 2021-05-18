@@ -4,6 +4,10 @@ import com.larko.LCore.Structures.Claim;
 import com.larko.LCore.Structures.Home;
 import com.larko.LCore.Structures.LPlayer;
 import com.larko.LCore.Structures.Position;
+import net.kyori.adventure.inventory.Book;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.TextColor;
 import net.minecraft.server.v1_16_R3.DimensionManager;
 import net.minecraft.server.v1_16_R3.IRegistryCustom;
 import org.bukkit.*;
@@ -81,14 +85,14 @@ public class HomeModule implements CommandExecutor, Listener {
             }
         } else if(label.equalsIgnoreCase("homes")) {
             LPlayer lPlayer = LPlayer.findByUUID(player.getUniqueId());
-            Inventory homesInventory = Bukkit.createInventory(null, 18, "Homes");
+            Inventory homesInventory = Bukkit.createInventory(null, 18, Component.text("Homes"));
             for (Home home : lPlayer.getHomes()) {
                 // random item
                 List<Material> filteredMaterials = Arrays.stream(Material.values()).filter(material -> material.isItem()).collect(Collectors.toList());
                 ItemStack homeItem = new ItemStack(filteredMaterials.get(new Random().nextInt(filteredMaterials.size())));
                 ItemMeta itemMeta = homeItem.getItemMeta();
-                itemMeta.setDisplayName(ChatColor.BLUE + home.getName());
-                itemMeta.setLore(Arrays.asList(home.getPosition().toString()));
+                itemMeta.displayName(Component.text(home.getName(), TextColor.color(52, 137, 235)));
+                itemMeta.lore(Arrays.asList(Component.text(home.getPosition().toString())));
                 homeItem.setItemMeta(itemMeta);
                 homesInventory.addItem(homeItem);
             }
@@ -103,10 +107,10 @@ public class HomeModule implements CommandExecutor, Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (event.getClickedInventory() == null) return;
-        if (!event.getView().getTitle().equals("Homes")) return;
+        if (!((TextComponent) event.getView().title()).content().equals("Homes")) return;
         event.setCancelled(true);
         HumanEntity player = event.getWhoClicked();
-        player.teleport(Position.fromString(event.getCurrentItem().getItemMeta().getLore().get(0)).toLocation());
+        player.teleport(Position.fromString(((TextComponent) event.getCurrentItem().getItemMeta().lore().get(0)).content()).toLocation());
         Bukkit.getPlayer(player.getUniqueId()).playSound(player.getLocation(), Sound.BLOCK_STONE_BUTTON_CLICK_ON, 50, 5);
     }
 }

@@ -3,8 +3,12 @@ package com.larko.LCore.Auth;
 import com.larko.LCore.Discord.Bot;
 import com.larko.LCore.Structures.LPlayer;
 import com.larko.LCore.Utils.Utilities;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Activity;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -20,7 +24,8 @@ import java.util.*;
 import static com.larko.LCore.Utils.AuthUtils.*;
 
 public class AuthModule implements Listener {
-    public static Map awaitingLoginPlayers = new HashMap<UUID, AuthState>();
+    // Must contain AuthState
+    public static Map awaitingLoginPlayers = new HashMap<UUID, HashMap<String, Object>>();
 
     public AuthModule() {
         // Ask the players to re-login if the plugin is restarted / auth module reinitialized
@@ -64,11 +69,11 @@ public class AuthModule implements Listener {
        Input : password, for registering or logging in
      */
     @EventHandler
-    public void onPlayerMessage(AsyncPlayerChatEvent event) {
+    public void onPlayerMessage(AsyncChatEvent event) {
         Player player = event.getPlayer();
         if(!awaitingLoginPlayers.containsKey(player.getUniqueId())) return;
-        AuthState method = (AuthState) awaitingLoginPlayers.get(player.getUniqueId());
-        String password = event.getMessage();
+        AuthState method = (AuthState) ((HashMap<String, Object>) awaitingLoginPlayers.get(player.getUniqueId())).get("authState");
+        String password = ((TextComponent) event.message()).content();
         // Delete message
         event.setCancelled(true);
         if(method == AuthState.AWAITING_REGISTER) {
@@ -77,7 +82,7 @@ public class AuthModule implements Listener {
                 player.sendMessage(ChatColor.RED + "An error occurred. Please try registering again.");
                 return;
             }
-            awaitingLoginPlayers.replace(player.getUniqueId(), AuthState.AWAITING_LOGIN);
+            ((HashMap<String, Object>) awaitingLoginPlayers.get(player.getUniqueId())).put("authState", AuthState.AWAITING_LOGIN);
             player.sendMessage("Successfully registered. Please type your password again to proceed.");
         } else {
             if(LPlayer.findByUUID(player.getUniqueId()).login(password)) {
@@ -94,6 +99,17 @@ public class AuthModule implements Listener {
                     player.resetTitle();
                 });
             } else {
+                int tries = (int) ((HashMap<String, Object>) awaitingLoginPlayers.get(player.getUniqueId())).get("tries");
+                // increment tries then add
+                ((HashMap<String, Object>) awaitingLoginPlayers.get(player.getUniqueId())).put("tries", ++tries);
+                if (tries == 3) {
+                    Bukkit.getScheduler().runTask(
+                            Bukkit.getPluginManager().getPlugin("LCore"),
+                            () -> player.kick(Component.text("Too many failed tries").color(NamedTextColor.RED))
+                    );
+                    awaitingLoginPlayers.remove(player.getUniqueId());
+                    return;
+                }
                 player.sendMessage(ChatColor.RED + "Bad password.");
             }
         }
