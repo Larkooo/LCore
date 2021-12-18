@@ -2,8 +2,6 @@ package com.larko.LCore.Utils;
 
 import com.larko.LCore.Main;
 import com.larko.LCore.Structures.Position;
-import net.minecraft.server.v1_16_R3.MinecraftServer;
-import net.minecraft.server.v1_16_R3.ResourceKey;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -67,10 +65,13 @@ public class Utilities {
                     Date now = new Date();
                     ArrayList<String> timestamps = new ArrayList<>(science.keySet());
                     // if diff between last stats and now is less than 5 minutes, dont bother saving
-                    if (TimeUnit.MILLISECONDS.toMinutes(now.getTime() - Long.parseLong(timestamps.get(timestamps.size() - 1))) < 5) return;
+                    try {
+                        if (TimeUnit.MILLISECONDS.toMinutes(now.getTime() - Long.parseLong(timestamps.get(timestamps.size() - 1))) < 5) return;
+                    } catch (Exception e) {}
+
                     HashMap<String, Object> data = new HashMap<>();
                     data.put("playerCount", Bukkit.getOnlinePlayers().size());
-                    data.put("tps",  Double.toString(MinecraftServer.getServer().recentTps[0]));
+                    data.put("tps",  Double.toString(Bukkit.getServer().getTPS()[0]));
                     science.put(now.getTime(), data);
 
                     FileWriter scienceWriter = new FileWriter(new File(Utilities.dataFolder, "science.json"));

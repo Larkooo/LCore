@@ -14,7 +14,6 @@
     <orderEntry type="library" name="JDA-4.2.1_253-withDependencies-min" level="project" />
     <orderEntry type="library" name="JDA-CommandHandler-1.0" level="project" />
     <orderEntry type="library" name="xchart-3.8.0" level="project" />
-    <orderEntry type="library" name="paper-patched_1.16.5" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: io.papermc.paper:paper-api:1.18.1-R0.1-SNAPSHOT" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: commons-lang:commons-lang:2.6" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.google.guava:guava:31.0.1-jre" level="project" />

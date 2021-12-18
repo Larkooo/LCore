@@ -11,7 +11,6 @@ import com.larko.LCore.Utils.AuthUtils;
 import com.larko.LCore.Utils.Utilities;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
-import net.minecraft.server.v1_16_R3.MinecraftServer;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -39,7 +38,7 @@ public class Players implements CommandListener {
                 }).collect(Collectors.joining("\n")) +
                 "```"
                 );
-        embedBuilder.setFooter("LCore - TPS : " + MinecraftServer.getServer().recentTps[0]);
+        embedBuilder.setFooter("LCore - TPS : " + Bukkit.getServer().getTPS()[0]);
         message.reply(embedBuilder.build()).queue();
     }
 }

@@ -8,8 +8,6 @@ import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextColor;
-import net.minecraft.server.v1_16_R3.DimensionManager;
-import net.minecraft.server.v1_16_R3.IRegistryCustom;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;

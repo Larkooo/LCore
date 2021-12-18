@@ -5,7 +5,6 @@ import com.larko.LCore.Utils.AuthUtils;
 import com.larko.LCore.Utils.ClaimUtils;
 import com.larko.LCore.Utils.EconomyUtils;
 import com.larko.LCore.Utils.HomeUtils;
-import javafx.beans.DefaultProperty;
 import org.bukkit.Location;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
