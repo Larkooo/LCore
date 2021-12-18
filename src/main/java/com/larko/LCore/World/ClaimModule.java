@@ -7,6 +7,7 @@ import com.larko.LCore.Utils.Utilities;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.title.Title;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -180,11 +181,11 @@ public class ClaimModule implements CommandExecutor, Listener {
         // was in claim && is not in claim = show title
         // that way we dont show the title when not needed
         if(claimOwner != null && !lPlayer.isInClaim()) {
-            player.sendTitle("", ChatColor.BLUE + "Entered " + claimOwner.getName() + "'s claim", 1, 50, 3);
+            player.showTitle(Title.title(Component.text(""), Component.text(ChatColor.BLUE + "Entered " + claimOwner.getName() + "'s claim")));
             lPlayer.setInClaim(true);
         } else if(claimOwner == null && lPlayer.isInClaim()) {
             lPlayer.setInClaim(false);
-            player.sendTitle("", ChatColor.GREEN + "Wilderness", 1, 50, 3);
+            player.showTitle(Title.title(Component.text(""), Component.text(ChatColor.GREEN + "Wilderness")));
         }
     }
 
