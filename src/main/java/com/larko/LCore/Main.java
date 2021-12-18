@@ -8,6 +8,7 @@ import com.larko.LCore.Structures.LPlayer;
 import com.larko.LCore.Structures.Shop;
 import com.larko.LCore.World.ClaimModule;
 import com.larko.LCore.World.HomeModule;
+import com.larko.LCore.World.PlayerModule;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -84,6 +85,8 @@ public class Main extends JavaPlugin {
 
         getCommand("shop").setExecutor(new ShopModule());
         getCommand("sell").setExecutor(new ShopModule());
+
+        getCommand("safechest").setExecutor(new PlayerModule());
     }
 
     @Override
