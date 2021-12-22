@@ -218,7 +218,7 @@ public class ClaimModule implements CommandExecutor, Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (event.getClickedInventory() == null) return;
-        if (!(((TextComponent) event.getView().title()).content().equals("Claims"))) return;
+        if (!(event.getView().getTitle().equals("Claims"))) return;
         HumanEntity clickAuthor = event.getWhoClicked();
         Bukkit.getPlayer(clickAuthor.getUniqueId()).playSound(clickAuthor.getLocation(), Sound.ENTITY_VILLAGER_NO, 50, 5);
         event.setCancelled(true);

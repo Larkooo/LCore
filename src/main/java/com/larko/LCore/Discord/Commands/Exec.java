@@ -14,6 +14,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.json.simple.JSONObject;
 
+import java.util.Arrays;
+
 
 public class Exec implements CommandListener {
     public Exec() {}
@@ -37,9 +39,9 @@ public class Exec implements CommandListener {
             return;
         }
         long start = System.currentTimeMillis();
-        Message reloadMessage = message.reply("Reloading server...").complete();
+
         Bukkit.getScheduler().scheduleSyncDelayedTask(Bukkit.getPluginManager().getPlugin("LCore"), () ->
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command));
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), String.join(" ", args)));
         long finish = System.currentTimeMillis();
         message.reply("Executed command `" + command + "` in `" + (finish - start) + "ms`").queue();
     }

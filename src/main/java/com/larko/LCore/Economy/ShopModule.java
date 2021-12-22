@@ -49,8 +49,10 @@ public class ShopModule implements CommandExecutor, Listener {
                 ArrayList<Component> lore = new ArrayList<>();
                 lore.add(Component.text("Description : ").append(Component.text(item.getDescription()).color(NamedTextColor.BLUE)));
                 lore.add(Component.text("Price : ").append(Component.text(item.getPrice() + " LCoins").color(NamedTextColor.GOLD)));
-                lore.add(Component.text("Vendor : " + Bukkit.getOfflinePlayer(item.getVendor().getUuid()).getName()));
-                lore.add(Component.text(item.getUuid().toString()));
+                lore.add(Component.text("Vendor : ").append(Component.text(Bukkit.getOfflinePlayer(item.getVendor().getUuid()).getName()).color(NamedTextColor.WHITE)));
+                lore.add(Component.text(""));
+                lore.add(Component.text(""));
+                lore.add(Component.text(item.getUuid().toString()).color(NamedTextColor.LIGHT_PURPLE));
                 itemMeta.lore(lore);
 
                 itemStack.setItemMeta(itemMeta);
@@ -62,7 +64,7 @@ public class ShopModule implements CommandExecutor, Listener {
         } else if (label.equalsIgnoreCase("sell")) {
             ItemStack selectedItem = player.getInventory().getItemInMainHand();
             if (selectedItem.getType().equals(Material.AIR)) {
-                player.sendMessage("You cannot sell " + ChatColor.ITALIC + "air");
+                player.sendMessage("You cannot sell " + ChatColor.ITALIC + selectedItem.getType());
                 return false;
             }
             if (args.length < 1) {
@@ -91,7 +93,7 @@ public class ShopModule implements CommandExecutor, Listener {
                     ChatColor.GREEN +
                             "You've put " +
                             ChatColor.BLUE +
-                            selectedItem.getType().name() +
+                            selectedItem.getI18NDisplayName() +
                             ChatColor.GREEN +
                             " on the shop for sell for " +
                             ChatColor.GOLD + price + " LCoins"
@@ -105,7 +107,7 @@ public class ShopModule implements CommandExecutor, Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         if (event.getClickedInventory() == null) return;
         Shop shop = Shop.getInstance();
-        if (!(((TextComponent) event.getView().title()).content().equals(shop.getTitle()))) return;
+        if (!(event.getView().getTitle().equals(shop.getTitle()))) return;
         event.setCancelled(true);
 
         HumanEntity clickAuthor = event.getWhoClicked();
@@ -116,8 +118,8 @@ public class ShopModule implements CommandExecutor, Listener {
         // The information about the item is contained in the lore of the item
         // just some string manipulation to retrieve the price and vendor
         double price = Double.parseDouble(((TextComponent)itemMeta.lore().get(1).children().get(0)).content().replace(" LCoins", ""));
-        LPlayer vendor = LPlayer.findByUUID(Bukkit.getOfflinePlayerIfCached(((TextComponent) itemMeta.lore().get(2)).content().replace("Vendor : ", "")).getUniqueId());
-        String uuid = ((TextComponent) itemMeta.lore().get(3)).content();
+        LPlayer vendor = LPlayer.findByUUID(Bukkit.getOfflinePlayerIfCached(((TextComponent) itemMeta.lore().get(2).children().get(0)).content()).getUniqueId());
+        String uuid = ((TextComponent) itemMeta.lore().get(5)).content();
 
         // if client wants to buy only 1 item at a time, divide the price and reduce amount of item in inv
         //if (event.isLeftClick()) {
@@ -194,7 +196,7 @@ public class ShopModule implements CommandExecutor, Listener {
             clickAuthor.sendMessage(ChatColor.GREEN +
                     "You bought " +
                             ChatColor.BLUE +
-                            itemStack.getType().name() +
+                            itemStack.getI18NDisplayName() +
                             ChatColor.GREEN + " for" +
                             ChatColor.GOLD + " " +
                             price + " LCoins"
@@ -205,7 +207,7 @@ public class ShopModule implements CommandExecutor, Listener {
                         ChatColor.WHITE +
                         " bought your " +
                         ChatColor.ITALIC +
-                        itemStack.getType().name() +
+                        itemStack.getI18NDisplayName() +
                         ChatColor.RESET +
                         " for " +
                         ChatColor.GOLD +

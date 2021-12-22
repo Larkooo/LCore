@@ -19,6 +19,10 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import com.larko.LCore.Utils.Utilities;
 import org.json.simple.parser.ParseException;
+import org.knowm.xchart.BitmapEncoder;
+import org.knowm.xchart.XYChart;
+import org.knowm.xchart.XYSeries;
+import org.knowm.xchart.style.markers.SeriesMarkers;
 
 import java.io.File;
 import java.io.FileReader;

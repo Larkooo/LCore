@@ -1,5 +1,6 @@
 main: com.larko.LCore.Main
 name: LCore
+api-version: 1.18
 version: A1.0
 author: Larko
 commands:

@@ -10,11 +10,13 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.knowm.xchart.BitmapEncoder;
+import org.knowm.xchart.XYChart;
+import org.knowm.xchart.XYSeries;
+import org.knowm.xchart.style.markers.SeriesMarkers;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.awt.*;
+import java.io.*;
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +26,46 @@ public class Utilities {
     public static FileConfiguration config;
     public static final String tokenConfigPlaceholder = "PUT_YOUR_BOT_TOKEN_HERE";
 
+    public static void generateScienceGraph() throws IOException, ParseException {
+        JSONParser jsonParser = new JSONParser();
+        JSONObject science = (JSONObject) jsonParser.parse(new FileReader(new File(Utilities.dataFolder, "science.json")));
+
+        final int range = 5;
+        // timestamps
+        double[] timestamps = new double[range];
+        for (int i = 0; i < range; i++)
+        {
+            timestamps[(range - 1) - i] = Double.parseDouble((String) (science.keySet().toArray())[(science.size() - 1) - i]);
+        }
+
+        // tps & playercount
+        double[] tps = new double[range];
+        double[] playerCount = new double[range];
+        for (int i = 0; i < range; i++)
+        {
+            tps[(range - 1) - i] = Double.parseDouble((String)((JSONObject)science.values().toArray()[(science.size() - 1) - i]).get("tps"));
+            playerCount[(range - 1) - i] = new Double((long)((JSONObject)science.values().toArray()[(science.size() - 1) - i]).get("playerCount"));
+        }
+
+        // indices
+        double[] indices = new double[range];
+        for (int i = 0; i < range; i++)
+            indices[(range - 1) - i] = -i * 5;
+
+        XYChart chart = new XYChart(500, 400);
+
+        chart.getStyler().setChartBackgroundColor(new Color(0x2f3136));
+        chart.getStyler().setPlotBackgroundColor(Color.darkGray);
+
+        chart.setTitle("Sample Chart");
+        chart.setXAxisTitle("Time (min)");
+        XYSeries tpsSeries = chart.addSeries("TPS", indices, tps);
+        XYSeries playerCountSeries = chart.addSeries("Players", indices, playerCount);
+        tpsSeries.setMarker(SeriesMarkers.CIRCLE);
+        playerCountSeries.setMarker(SeriesMarkers.CIRCLE);
+
+        BitmapEncoder.saveBitmap(chart, Utilities.dataFolder.getAbsolutePath() + "/science", BitmapEncoder.BitmapFormat.PNG);
+    }
 
     public static boolean tryParseInt(String value) {
         try {

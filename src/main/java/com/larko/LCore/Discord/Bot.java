@@ -105,6 +105,11 @@ public class Bot {
                             .setDescription("Restart the server")
                             .build()
             );
+            commandHandler.addCommand(
+                    new CommandBuilder("info", new Info())
+                            .setDescription("General info")
+                            .build()
+            );
 
             // Background tasks. ex. refresh player count
             if (bot != null && Utilities.config.getString("activity_title") == null) {

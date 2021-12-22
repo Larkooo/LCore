@@ -105,7 +105,7 @@ public class HomeModule implements CommandExecutor, Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (event.getClickedInventory() == null) return;
-        if (!((TextComponent) event.getView().title()).content().equals("Homes")) return;
+        if (!(event.getView().getTitle().equals("Homes"))) return;
         event.setCancelled(true);
         HumanEntity player = event.getWhoClicked();
         player.teleport(Position.fromString(((TextComponent) event.getCurrentItem().getItemMeta().lore().get(0)).content()).toLocation());
