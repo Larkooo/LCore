@@ -49,7 +49,7 @@ public class Claim {
         double y2 = this.position.getY() + radius;
         double z2 = this.position.getZ() + radius;
 
-        if(((playerX > x1) && (playerX < x2)) && ((playerY > y1) && (playerY < y2)) && ((playerZ > z1) && (playerZ < z2))) {
+        if(location.getWorld().getEnvironment().equals(this.position.getEnv()) && ((playerX > x1) && (playerX < x2)) && ((playerY > y1) && (playerY < y2)) && ((playerZ > z1) && (playerZ < z2))) {
             isInRadius = true;
         }
         return isInRadius;
