@@ -54,7 +54,9 @@ public class Main extends JavaPlugin {
             getLogger().severe("Failed to load shop data: " + e);
         }
 
-        Utilities.runScienceTask();
+//        new Bot();
+
+//        Utilities.runScienceTask();
 
         getServer().getPluginManager().registerEvents(new AuthModule(), this);
         getServer().getPluginManager().registerEvents(new ClaimModule(), this);
@@ -85,14 +87,13 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        scienceTimer.cancel();
-        JDA bot = Bot.getInstance();
-        if (bot != null) {
-            Bot.activityUpdateTimer.cancel();
-            bot.shutdownNow();
-        };
         if (scienceTimer != null) {
             scienceTimer.cancel();
         }
+//        JDA bot = Bot.getInstance();
+//        if (bot != null) {
+//            Bot.activityUpdateTimer.cancel();
+//            bot.shutdownNow();
+//        };
     }
 }
