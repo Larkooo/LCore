@@ -1,7 +1,6 @@
 package com.larko.LCore;
 
 import com.larko.LCore.Auth.AuthModule;
-import com.larko.LCore.Discord.Bot;
 import com.larko.LCore.Economy.MoneyModule;
 import com.larko.LCore.Economy.ShopModule;
 import com.larko.LCore.Structures.LPlayer;
@@ -18,11 +17,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import com.larko.LCore.Utils.Utilities;
-import org.json.simple.parser.ParseException;
-import org.knowm.xchart.BitmapEncoder;
-import org.knowm.xchart.XYChart;
-import org.knowm.xchart.XYSeries;
-import org.knowm.xchart.style.markers.SeriesMarkers;
 
 import java.io.File;
 import java.io.FileReader;
@@ -33,6 +27,7 @@ import java.util.*;
 public class Main extends JavaPlugin {
     //public static JSONArray cachedPlayersData;
     public static Timer scienceTimer;
+
     @Override
     public void onEnable() {
         Utilities.dataFolder = getDataFolder();
@@ -48,20 +43,16 @@ public class Main extends JavaPlugin {
         JSONParser jsonParser = new JSONParser();
 
         try {
-            JSONArray players = (JSONArray) jsonParser.parse(new FileReader(new File(Utilities.dataFolder, "players.json")));
-            //cachedPlayersData = (JSONArray) players;
-            for (int i = 0; i < players.size(); i++) {
-                JSONObject player = (JSONObject) players.get(i);
-                LPlayer.fromJSON(player);
-            }
-
-            JSONObject shop = (JSONObject) jsonParser.parse(new FileReader(new File(Utilities.dataFolder, "shop.json")));
-            Shop.fromJSON(shop);
+            Utilities.loadPlayers();
         } catch (Exception e) {
-            e.printStackTrace();
+            getLogger().severe("Failed to load players data: " + e);
         }
 
-        new Bot();
+        try {
+            Utilities.loadShop();
+        } catch (Exception e) {
+            getLogger().severe("Failed to load shop data: " + e);
+        }
 
         Utilities.runScienceTask();
 
@@ -100,5 +91,8 @@ public class Main extends JavaPlugin {
             Bot.activityUpdateTimer.cancel();
             bot.shutdownNow();
         };
+        if (scienceTimer != null) {
+            scienceTimer.cancel();
+        }
     }
 }

@@ -21,5 +21,10 @@
       <option name="name" value="JBoss Community repository" />
       <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
     </remote-repository>
+    <remote-repository>
+      <option name="id" value="dv8tion" />
+      <option name="name" value="m2-dv8tion" />
+      <option name="url" value="https://m2.dv8tion.net/" />
+    </remote-repository>
   </component>
 </project>

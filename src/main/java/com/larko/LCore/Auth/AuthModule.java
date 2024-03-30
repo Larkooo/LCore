@@ -1,6 +1,5 @@
 package com.larko.LCore.Auth;
 
-import com.larko.LCore.Discord.Bot;
 import com.larko.LCore.Structures.LPlayer;
 import com.larko.LCore.Utils.Utilities;
 import io.papermc.paper.event.player.AsyncChatEvent;

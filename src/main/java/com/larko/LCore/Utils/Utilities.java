@@ -1,7 +1,9 @@
 package com.larko.LCore.Utils;
 
 import com.larko.LCore.Main;
+import com.larko.LCore.Structures.LPlayer;
 import com.larko.LCore.Structures.Position;
+import com.larko.LCore.Structures.Shop;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -21,10 +23,56 @@ import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static org.bukkit.Bukkit.getLogger;
+
 public class Utilities {
     public static File dataFolder;
     public static FileConfiguration config;
     public static final String tokenConfigPlaceholder = "PUT_YOUR_BOT_TOKEN_HERE";
+
+    public static void loadPlayers() throws IOException, ParseException {
+        JSONParser jsonParser = new JSONParser();
+        File playersFile = new File(Utilities.dataFolder, "players.json");
+        if (!playersFile.exists()) {
+            boolean created = playersFile.createNewFile();
+            if (!created) {
+                getLogger().severe("Failed to create players.json file");
+                return;
+            }
+
+            FileWriter playersWriter = new FileWriter(playersFile);
+            playersWriter.write("[]");
+            playersWriter.flush();
+            playersWriter.close();
+        }
+
+        JSONArray players = (JSONArray) jsonParser.parse(new FileReader(playersFile));
+        //cachedPlayersData = (JSONArray) players;
+        for (int i = 0; i < players.size(); i++) {
+            JSONObject player = (JSONObject) players.get(i);
+            LPlayer.fromJSON(player);
+        }
+    }
+
+    public static void loadShop() throws IOException, ParseException {
+        JSONParser jsonParser = new JSONParser();
+        File shopFile = new File(Utilities.dataFolder, "shop.json");
+        if (!shopFile.exists()) {
+            boolean created = shopFile.createNewFile();
+            if (!created) {
+                getLogger().severe("Failed to create shop.json file");
+                return;
+            }
+
+            FileWriter shopWriter = new FileWriter(shopFile);
+            shopWriter.write("{\"title\": \"Shop\",\"open\": true,\"items\": []}");
+            shopWriter.flush();
+            shopWriter.close();
+        }
+
+        JSONObject shop = (JSONObject) jsonParser.parse(new FileReader(shopFile));
+        Shop.fromJSON(shop);
+    }
 
     public static void generateScienceGraph() throws IOException, ParseException {
         JSONParser jsonParser = new JSONParser();
